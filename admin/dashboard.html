@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CTU Bulletin Board Admin - Dashboard</title>
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p class="sub">Manage Announcements & Events</p>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="link" id="openDisplayBtn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Open Display
+      </button>
+      <button type="button" id="logoutBtn" class="danger">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M11 11L14 8L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="grid">
+
+    <!-- CREATE / EDIT FORM -->
+    <section class="card panel">
+      <h2 id="formTitle">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <path d="M10 5V15M5 10H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Create Content
+      </h2>
+
+      <form id="contentForm">
+        <div class="form-group">
+          <label for="type">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3" y="3" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 6H10M6 9H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Content Type
+          </label>
+          <select id="type" required>
+            <option value="announcements">Announcements</option>
+            <option value="events">Events</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4H14M2 8H14M2 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Title
+          </label>
+          <input type="text" id="title" placeholder="Enter title..." required />
+        </div>
+
+        <div class="form-group">
+          <label for="content">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 5H11M5 8H11M5 11H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Content
+          </label>
+          <textarea id="content" rows="4" placeholder="Enter details..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="startDate">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 1V3M11 1V3M2 6H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Start Date & Time
+          </label>
+          <input type="datetime-local" id="startDate" required />
+        </div>
+
+        <div class="form-group">
+          <label for="endDate">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 1V3M11 1V3M2 6H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            End Date & Time
+          </label>
+          <input type="datetime-local" id="endDate" required />
+        </div>
+
+        <div class="row">
+          <button type="submit" id="saveBtn" class="btn-primary">
+            <span>Save</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M12 6L6.5 11.5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" id="cancelEditBtn" class="ghost hidden">Cancel</button>
+        </div>
+
+        <p id="formMsg" class="msg"></p>
+      </form>
+    </section>
+
+    <!-- ANNOUNCEMENTS LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <path d="M10 4C10 4 7 4 7 7C7 10 10 10 10 13V16M10 16H8M10 16H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Announcements
+      </h2>
+      <div id="annList" class="list"></div>
+    </section>
+
+    <!-- EVENTS LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 2V4M13 2V4M3 8H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="7" cy="12" r="1" fill="currentColor"/>
+          <circle cx="10" cy="12" r="1" fill="currentColor"/>
+          <circle cx="13" cy="12" r="1" fill="currentColor"/>
+        </svg>
+        Events & Notices
+      </h2>
+      <div id="eventList" class="list"></div>
+    </section>
+
+  </main>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
