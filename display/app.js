@@ -2,7 +2,6 @@ import { db } from "../firebase/firebaseConfig.js";
 import {
   collection,
   query,
-  where,
   orderBy,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -18,6 +17,68 @@ const annCountEl = document.getElementById("annCount");
 const eventCountEl = document.getElementById("eventCount");
 const calendarCountEl = document.getElementById("calendarCount");
 
+const currentTimeEl = document.getElementById("currentTime");
+const currentDateEl = document.getElementById("currentDate");
+const dayOfWeekEl = document.getElementById("dayOfWeek");
+const weatherEl = document.getElementById("weather");
+
+// =======================
+// TIME & DATE
+// =======================
+function updateDateTime() {
+  const now = new Date();
+
+  if (currentTimeEl) {
+    currentTimeEl.textContent = now.toLocaleTimeString();
+  }
+
+  if (currentDateEl) {
+    currentDateEl.textContent = now.toLocaleDateString();
+  }
+
+  if (dayOfWeekEl) {
+    dayOfWeekEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
+  }
+}
+
+setInterval(updateDateTime, 1000);
+updateDateTime();
+
+// =======================
+// WEATHER
+// =======================
+function loadWeather() {
+  const API_KEY = "f5168c305674a67a705409181a80046d";
+  const LAT = 10.650;
+  const LON = 124.350;
+
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${LAT}&lon=${LON}&units=metric&appid=${API_KEY}`)
+    .then(res => res.json())
+    .then(data => {
+      if (!weatherEl) return;
+      if (!data.main) {
+        weatherEl.textContent = "Weather unavailable";
+        return;
+      }
+
+      const temp = Math.round(data.main.temp);
+      const desc = data.weather[0].description;
+
+      weatherEl.innerHTML = `
+        <div>
+          <strong>${temp}°C</strong><br>
+          <small>${desc}</small>
+        </div>
+      `;
+    })
+    .catch(() => {
+      if (weatherEl) weatherEl.textContent = "Weather unavailable";
+    });
+}
+
+loadWeather();
+setInterval(loadWeather, 30 * 60 * 1000);
+
 // =======================
 // RENDER FUNCTION
 // =======================
@@ -27,11 +88,7 @@ function renderItems(container, data, countEl) {
   container.innerHTML = "";
 
   if (data.length === 0) {
-    container.innerHTML = `
-      <div style="padding:40px 20px;text-align:center;opacity:.5;">
-        <p>No active content</p>
-      </div>
-    `;
+    container.innerHTML = `<p style="opacity:.6">No active content</p>`;
     if (countEl) countEl.textContent = "0";
     return;
   }
@@ -39,12 +96,10 @@ function renderItems(container, data, countEl) {
   data.forEach(item => {
     const div = document.createElement("div");
     div.className = "announcement";
-
     div.innerHTML = `
       <h3>${item.title}</h3>
       <p>${item.content}</p>
     `;
-
     container.appendChild(div);
   });
 
@@ -52,81 +107,31 @@ function renderItems(container, data, countEl) {
 }
 
 // =======================
-// LISTEN ANNOUNCEMENTS
+// FIRESTORE LISTENERS
 // =======================
-function listenAnnouncements() {
-  if (!announcementsContainer) return;
-
-  const now = new Date();
-
-  const q = query(
-    collection(db, "announcements"),
-    orderBy("startDate", "desc")
-  );
+function listenCollection(container, collectionName, countEl) {
+  const q = query(collection(db, collectionName), orderBy("startDate", "asc"));
 
   onSnapshot(q, (snapshot) => {
+    const now = new Date();
+
     const data = snapshot.docs
       .map(doc => ({ id: doc.id, ...doc.data() }))
       .filter(item => {
         const start = item.startDate?.toDate();
         const end = item.endDate?.toDate();
-        return start && end && start <= now && end >= now;
+        return start && end && end >= now;
       });
 
-    renderItems(announcementsContainer, data, annCountEl);
+    renderItems(container, data, countEl);
   });
 }
 
 // =======================
-// LISTEN EVENTS
+// INIT
 // =======================
-function listenEvents() {
-  if (!eventsContainer) return;
+console.log("Display Loaded");
 
-  const now = new Date();
-
-  const q = query(
-    collection(db, "events"),
-    orderBy("startDate", "asc")
-  );
-
-  onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(item => {
-        const start = item.startDate?.toDate();
-        const end = item.endDate?.toDate();
-        return start && end && start <= now && end >= now;
-      });
-
-    renderItems(eventsContainer, data, eventCountEl);
-  });
-}
-
-// =======================
-// LISTEN ACADEMIC CALENDAR
-// =======================
-function listenAcademicCalendar() {
-  const q = query(collection(db, "academicCalendar"));
-
-  onSnapshot(q, (snapshot) => {
-    console.log("Calendar snapshot size:", snapshot.size);
-    snapshot.docs.forEach(doc => console.log(doc.data()));
-
-    const data = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    renderItems(academicCalendarContainer, data, calendarCountEl);
-  });
-}
-
-// =======================
-// INIT DISPLAY
-// =======================
-console.log("CTU Digital Bulletin Board Display Loaded");
-
-listenAnnouncements();
-listenEvents();
-listenAcademicCalendar();
+listenCollection(announcementsContainer, "announcements", annCountEl);
+listenCollection(eventsContainer, "events", eventCountEl);
+listenCollection(academicCalendarContainer, "academicCalendar", calendarCountEl);
