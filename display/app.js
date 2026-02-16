@@ -126,6 +126,47 @@ function listenCollection(container, collectionName, countEl) {
     renderItems(container, data, countEl);
   });
 }
+// =======================
+// MINI CALENDAR
+// =======================
+
+const calendarMonthEl = document.getElementById("calendarMonth");
+const calendarDaysEl = document.getElementById("calendarDays");
+
+function generateMiniCalendar() {
+  if (!calendarMonthEl || !calendarDaysEl) return;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+
+  // Set month title
+  calendarMonthEl.textContent = now.toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric'
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = "";
+
+  // Empty cells before first day
+  for (let i = 0; i < firstDay; i++) {
+    html += `<div class="calendar-day empty"></div>`;
+  }
+
+  // Month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = day === today ? " today" : "";
+    html += `<div class="calendar-day${isToday}">${day}</div>`;
+  }
+
+  calendarDaysEl.innerHTML = html;
+}
+
+generateMiniCalendar();
 
 // =======================
 // INIT
