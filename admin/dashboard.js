@@ -138,6 +138,13 @@ function renderList(container, docs, collectionName) {
 // =======================
 function initializeDashboard() {
 
+  const openDisplayBtn = document.getElementById("openDisplayBtn");
+
+  if (openDisplayBtn) {
+    openDisplayBtn.addEventListener("click", () => {
+      window.open("../display/", "_blank");
+    });
+  }
   // LOGOUT
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await signOut(auth);
