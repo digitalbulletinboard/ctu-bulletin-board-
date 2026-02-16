@@ -107,23 +107,16 @@ function listenEvents() {
 // LISTEN ACADEMIC CALENDAR
 // =======================
 function listenAcademicCalendar() {
-  if (!academicCalendarContainer) return;
-
-  const now = new Date();
-
-  const q = query(
-    collection(db, "academicCalendar"),
-    orderBy("startDate", "asc")
-  );
+  const q = query(collection(db, "academicCalendar"));
 
   onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(item => {
-        const start = item.startDate?.toDate();
-        const end = item.endDate?.toDate();
-        return start && end && end >= now;
-      });
+    console.log("Calendar snapshot size:", snapshot.size);
+    snapshot.docs.forEach(doc => console.log(doc.data()));
+
+    const data = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
     renderItems(academicCalendarContainer, data, calendarCountEl);
   });
