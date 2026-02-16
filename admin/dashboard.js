@@ -221,7 +221,7 @@ function initializeDashboard() {
   );
 
   onSnapshot(
-    query(collection(db, "academic_calendar"), orderBy("startDate", "asc")),
+    query(collection(db, "academicCalendar"), orderBy("startDate", "asc")),
     snap => renderList(document.getElementById("calendarList"), snap.docs, "academicCalendar")
   );
 }
