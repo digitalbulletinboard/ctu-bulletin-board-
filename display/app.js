@@ -269,7 +269,7 @@ function listenAcademicCalendar() {
   const oneMonthAhead = new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000));
 
   const q = query(
-    collection(db, "academic_calendar"),
+    collection(db, "academicCalendar"),
     where("eventDate", ">=", Timestamp.fromDate(now)),
     where("eventDate", "<=", Timestamp.fromDate(oneMonthAhead)),
     orderBy("eventDate", "asc")
