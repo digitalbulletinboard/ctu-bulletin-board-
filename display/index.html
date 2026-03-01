@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CTU Digital Bulletin Board</title>
+  <link rel="shortcut icon" href="ctulogo.jpg" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +22,7 @@
   <!-- Header -->
   <header>
     <div class="logo-section">
-      <img class="logo-photo" src="ctulogo.jp" alt="CTU Logo" />
+      <img class="logo-photo" src="ctulogo.jpg" alt="CTU Logo" />
       <div>
         <p class="logo-name">CTU-SF</p>
         <p class="logo-subtitle">San Francisco Campus</p>
@@ -36,31 +37,11 @@
       Digital Bulletin Board
     </a>
   </header>
-<!-- Add this AFTER the events panel -->
-<section class="panel calendar-panel">
-  <div class="panel-header">
-    <h2>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="2"/>
-        <path d="M8 2V4M16 2V4M3 9H21" stroke="currentColor" stroke-width="2"/>
-      </svg>
-      Academic Calendar
-    </h2>
-    <div class="panel-badge">
-      <span id="calendarCount">0</span>
-    </div>
-  </div>
-  <div id="academicCalendar" class="content-list">
-    <div class="loading-state">
-      <div class="loading-spinner"></div>
-      <p>Loading calendar...</p>
-    </div>
-  </div>
-</section>
-  <!-- Main Three-Column Layout -->
-  <main class="three-column-layout">
+
+  <!-- Main Four-Column Layout -->
+  <main class="four-column-layout">
     
-    <!-- Left Column: Announcements -->
+    <!-- Column 1: Announcements -->
     <section class="panel announcements-panel">
       <div class="panel-header">
         <h2>
@@ -82,7 +63,7 @@
       </div>
     </section>
 
-    <!-- Middle Column: Events -->
+    <!-- Column 2: Events -->
     <section class="panel events-panel">
       <div class="panel-header">
         <h2>
@@ -107,7 +88,29 @@
       </div>
     </section>
 
-    <!-- Right Column: Sidebar with Time, Calendar, Weather -->
+    <!-- Column 3: Academic Calendar -->
+    <section class="panel calendar-panel">
+      <div class="panel-header">
+        <h2>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 2V4M16 2V4M3 9H21" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Academic Calendar
+        </h2>
+        <div class="panel-badge">
+          <span id="calendarCount">0</span>
+        </div>
+      </div>
+      <div id="academicCalendar" class="content-list">
+        <div class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Loading calendar...</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Column 4: Sidebar -->
     <aside class="sidebar">
       
       <!-- Time Widget -->
