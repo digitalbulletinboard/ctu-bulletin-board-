@@ -41,14 +41,20 @@
   padding: 0;
 }
 
+/* NON-SCROLLABLE BODY */
+html, body {
+  height: 100vh;
+  overflow: hidden; /* No page scrolling */
+}
+
 body {
   font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
-  overflow-x: hidden;
   position: relative;
-  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .login-container {
@@ -86,7 +92,6 @@ body {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
 }
-
 
 .brand {
   display: flex;
@@ -134,23 +139,25 @@ body {
 
 /* Form Styles */
 .form-group {
-  margin-bottom: 24px;
+  margin-bottom: 16px; /* Reduced from 24px */
 }
 
 label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 label svg {
   color: var(--text-muted);
+  width: 14px;
+  height: 14px;
 }
 
 input[type="email"],
@@ -160,12 +167,12 @@ input[type="datetime-local"],
 textarea,
 select {
   width: 100%;
-  padding: 14px 16px;
+  padding: 10px 12px; /* Reduced padding */
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: 14px;
   font-family: inherit;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
@@ -176,17 +183,18 @@ textarea:focus,
 select:focus {
   border-color: var(--primary);
   background: var(--bg-tertiary);
-  box-shadow: 0 0 0 4px var(--primary-light);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 input::placeholder,
 textarea::placeholder {
   color: var(--text-muted);
+  font-size: 13px;
 }
 
 textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px; /* Reduced from 100px */
   font-family: inherit;
 }
 
@@ -195,17 +203,17 @@ select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 16px center;
-  padding-right: 44px;
+  background-position: right 12px center;
+  padding-right: 40px;
 }
 
 /* Buttons */
 button {
   font-family: inherit;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -214,7 +222,7 @@ button {
 
 .btn-primary {
   width: 100%;
-  padding: 14px 24px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   color: white;
   box-shadow: var(--shadow-md), var(--glow-primary);
@@ -237,11 +245,6 @@ button {
 .btn-primary svg {
   width: 16px;
   height: 16px;
-  transition: transform 0.3s ease;
-}
-
-.btn-primary:hover svg {
-  transform: translateX(4px);
 }
 
 button:disabled {
@@ -253,7 +256,8 @@ button:disabled {
 .danger {
   background: var(--danger);
   color: white;
-  padding: 10px 20px;
+  padding: 8px 16px;
+  font-size: 13px;
 }
 
 .danger:hover {
@@ -265,7 +269,8 @@ button:disabled {
   background: transparent;
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  padding: 10px 20px;
+  padding: 8px 16px;
+  font-size: 13px;
 }
 
 .ghost:hover {
@@ -273,12 +278,11 @@ button:disabled {
   border-color: var(--border-hover);
 }
 
-
 .msg {
-  margin-top: 16px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 13px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
   font-weight: 500;
   text-align: center;
   animation: slideIn 0.3s ease;
@@ -358,23 +362,22 @@ button:disabled {
   animation: pulse 2s ease-in-out infinite;
 }
 
-Dashboard*
+/* Dashboard Topbar */
 .topbar {
-  padding: 24px 32px;
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--card-border);
-  position: sticky;
-  top: 0;
   z-index: 100;
+  flex-shrink: 0;
 }
 
 .topbar h1 {
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   margin: 0;
   background: linear-gradient(135deg, var(--text-primary), var(--accent));
@@ -383,21 +386,27 @@ Dashboard*
   background-clip: text;
 }
 
+.topbar .sub {
+  font-size: 12px;
+}
+
 .topbar-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
 .topbar-actions .link {
-  padding: 10px 20px;
+  padding: 8px 16px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border-radius: 8px;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
 .topbar-actions .link:hover {
@@ -406,14 +415,18 @@ Dashboard*
   transform: translateY(-2px);
 }
 
-
-.grid {
-  padding: 32px;
+/* NON-SCROLLABLE GRID DASHBOARD */
+.grid-dashboard {
+  flex: 1;
+  padding: 16px;
   display: grid;
-  gap: 24px;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  max-width: 1600px;
+  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 1920px;
   margin: 0 auto;
+  width: 100%;
+  overflow: hidden; /* No grid scrolling */
+  height: calc(100vh - 80px); /* Viewport minus header */
 }
 
 /* Card */
@@ -421,12 +434,15 @@ Dashboard*
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 28px;
+  border-radius: 16px;
+  padding: 16px;
   box-shadow: var(--shadow-lg);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Fill grid cell */
 }
 
 .card.panel::before {
@@ -435,37 +451,60 @@ Dashboard*
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--primary), var(--accent));
   opacity: 0.8;
 }
 
 .card.panel:hover {
   border-color: var(--border-hover);
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-xl);
 }
 
 .card h2 {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: var(--text-primary);
+  flex-shrink: 0;
 }
 
-/* List Items */
+/* List Items - Scrollable */
 .list {
   display: grid;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto; /* Only lists scroll */
+  overflow-x: hidden;
+  padding-right: 6px;
+}
+
+/* Custom scrollbar */
+.list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.3);
 }
 
 .item {
-  padding: 16px;
+  padding: 12px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .item:hover {
@@ -475,40 +514,39 @@ Dashboard*
 }
 
 .item h3 {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  margin: 0 0 8px 0;
+  margin: 0 0 6px 0;
   color: var(--text-primary);
 }
 
 .item p {
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text-secondary);
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   line-height: 1.5;
 }
 
 .item small {
   display: block;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-muted);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   font-family: 'Space Mono', monospace;
 }
 
 .item .actions {
   display: flex;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .item .actions button {
   flex: 1;
-  padding: 8px 12px;
-  font-size: 13px;
-  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 6px;
 }
-
 
 .hidden {
   display: none !important;
@@ -516,11 +554,11 @@ Dashboard*
 
 .row {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
 }
 
-
+/* Animations */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -554,22 +592,25 @@ Dashboard*
   }
 }
 
-
-@media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: 1fr;
+/* Responsive */
+@media (max-width: 1600px) {
+  .grid-dashboard {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
-@media (max-width: 640px) {
-  .card {
-    padding: 32px 24px;
+@media (max-width: 1200px) {
+  .grid-dashboard {
+    grid-template-columns: repeat(2, 1fr);
+    height: calc(100vh - 80px);
   }
+}
 
+@media (max-width: 768px) {
   .topbar {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 16px;
   }
 
   .topbar-actions {
@@ -581,9 +622,10 @@ Dashboard*
     flex: 1;
   }
 
-  .grid {
-    padding: 20px;
-    gap: 16px;
+  .grid-dashboard {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
   }
 
   .status-bar {
@@ -591,7 +633,6 @@ Dashboard*
     gap: 12px;
   }
 }
-
 
 @keyframes shimmer {
   0% {
