@@ -27,13 +27,17 @@
   padding: 0;
 }
 
+/* CRITICAL: Non-scrollable body */
+html, body {
+  height: 100vh;
+  overflow: hidden; /* No page scrolling! */
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
-  overflow-x: hidden;
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
@@ -64,7 +68,6 @@ body {
   background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, transparent 70%);
   top: -15%;
   right: -10%;
-  animation-delay: 0s;
 }
 
 .orb-2 {
@@ -109,30 +112,31 @@ header {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--card-border);
-  padding: 20px 32px;
+  padding: 14px 20px; /* Reduced from 20px */
   box-shadow: var(--shadow-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .logo-photo {
-  height: 70px;
-  width: 70px;
-  border-radius: 12px;
+  height: 50px; /* Reduced from 70px */
+  width: 50px;
+  border-radius: 10px;
   border: 2px solid var(--primary);
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .logo-name {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 32px;
+  font-size: 24px; /* Reduced from 32px */
   font-weight: 700;
   margin: 0;
   background: linear-gradient(135deg, var(--text-primary), var(--accent));
@@ -143,7 +147,7 @@ header {
 }
 
 .logo-subtitle {
-  font-size: 13px;
+  font-size: 11px; /* Reduced from 13px */
   color: var(--text-muted);
   margin: 4px 0 0 0;
   font-weight: 500;
@@ -151,15 +155,15 @@ header {
 
 .header-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 20px;
+  font-size: 16px; /* Reduced from 20px */
   font-weight: 600;
   color: var(--text-primary);
   text-decoration: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   transition: all 0.3s ease;
@@ -171,23 +175,20 @@ header {
   transform: translateY(-2px);
 }
 
-/* ==================== THREE-COLUMN LAYOUT ==================== */
-.three-column-layout {
+/* ==================== FOUR-COLUMN LAYOUT (NON-SCROLLABLE) ==================== */
+.four-column-layout {
   position: relative;
   z-index: 1;
   flex: 1;
-  padding: 24px;
+  padding: 14px; /* Reduced from 24px */
   max-width: 1920px;
   width: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr 400px;
-  gap: 20px;
-}
-.three-column-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 350px; /* Changed to 4 columns */
-  gap: 20px;
+  grid-template-columns: 1fr 1fr 1fr 280px; /* Narrower sidebar */
+  gap: 14px; /* Reduced from 20px */
+  overflow: hidden;
+  height: calc(100vh - 120px); /* Viewport minus header and footer */
 }
 
 /* ==================== PANELS ==================== */
@@ -195,14 +196,15 @@ header {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 14px; /* Reduced from 20px */
+  padding: 14px; /* Reduced from 24px */
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  height: 100%;
 }
 
 .panel::before {
@@ -211,76 +213,70 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--primary), var(--accent));
   opacity: 0.8;
-}
-
-.announcements-panel {
-  animation-delay: 0s;
-}
-
-.events-panel {
-  animation-delay: 0.1s;
 }
 
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
+  margin-bottom: 12px; /* Reduced from 20px */
+  padding-bottom: 10px; /* Reduced from 16px */
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .panel h2 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 20px;
+  font-size: 16px; /* Reduced from 20px */
   font-weight: 700;
   margin: 0;
   color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .panel h2 svg {
   color: var(--accent);
+  width: 20px;
+  height: 20px;
 }
 
 .panel-badge {
-  padding: 6px 14px;
+  padding: 4px 10px; /* Reduced */
   background: rgba(59, 130, 246, 0.15);
   border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 20px;
-  font-size: 14px;
+  border-radius: 16px;
+  font-size: 12px;
   font-weight: 700;
   color: #93c5fd;
   font-family: 'Space Grotesk', monospace;
 }
 
-/* ==================== CONTENT LIST ==================== */
+/* ==================== CONTENT LIST (SCROLLABLE) ==================== */
 .content-list {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px; /* Reduced from 14px */
   overflow-y: auto;
-  max-height: calc(100vh - 280px);
-  padding-right: 8px;
+  overflow-x: hidden;
+  padding-right: 6px;
 }
 
 .content-list::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .content-list::-webkit-scrollbar-track {
-  background: var(--bg-tertiary);
-  border-radius: 10px;
+  background: transparent;
 }
 
 .content-list::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: rgba(148, 163, 184, 0.2);
   border-radius: 10px;
 }
 
@@ -290,80 +286,107 @@ header {
 
 /* Announcement/Event Items */
 .announcement {
-  padding: 18px;
+  padding: 12px; /* Reduced from 18px */
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   animation: slideIn 0.4s ease;
+  flex-shrink: 0;
 }
 
 .announcement:hover {
   background: rgba(21, 27, 46, 0.9);
   border-color: rgba(148, 163, 184, 0.2);
-  transform: translateX(6px);
+  transform: translateX(4px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 .announcement h3 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 17px;
+  font-size: 14px; /* Reduced from 17px */
   font-weight: 600;
-  margin: 0 0 10px 0;
+  margin: 0 0 6px 0;
   color: var(--text-primary);
 }
 
-.announcement p {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.6;
+.announcement img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 8px 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  display: block;
 }
 
-/* Loading & Empty States */
+.announcement p {
+  font-size: 12px; /* Reduced from 14px */
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Loading State */
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 40px 20px;
   text-align: center;
   opacity: 0.6;
 }
 
 .loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
+  width: 30px; /* Reduced from 40px */
+  height: 30px;
+  border: 3px solid var(--border-color);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .loading-state p {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 /* ==================== SIDEBAR ==================== */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px; /* Reduced from 16px */
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
 }
 
 .widget {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 12px; /* Reduced from 20px */
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .widget:hover {
@@ -383,26 +406,30 @@ header {
   opacity: 0.6;
 }
 
-/* Widget Layout */
 .time-widget,
 .calendar-widget,
 .weather-widget {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
 }
 
 .widget-icon {
-  width: 56px;
-  height: 56px;
+  width: 44px; /* Reduced from 56px */
+  height: 44px;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
   border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 12px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--accent);
   flex-shrink: 0;
+}
+
+.widget-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .weather-icon {
@@ -411,22 +438,23 @@ header {
 
 .widget-content {
   flex: 1;
+  min-width: 0;
 }
 
 .widget-label {
-  font-size: 11px;
+  font-size: 9px; /* Reduced from 11px */
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .time-display,
 .date-display,
 .weather-display {
   font-family: 'Space Grotesk', monospace;
-  font-size: 24px;
+  font-size: 18px; /* Reduced from 24px */
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -435,26 +463,26 @@ header {
 .time-zone,
 .day-of-week,
 .weather-location {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: 2px;
   font-weight: 500;
 }
 
 /* Mini Calendar */
 .mini-calendar-widget {
-  padding: 16px;
+  padding: 10px;
 }
 
 .mini-calendar-header {
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .mini-calendar-header h3 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 16px;
+  font-size: 13px; /* Reduced from 16px */
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -464,15 +492,15 @@ header {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 4px;
 }
 
 .calendar-day-header {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
-  padding: 8px 0;
+  padding: 4px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -481,7 +509,7 @@ header {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 6px;
+  gap: 3px;
 }
 
 .calendar-day {
@@ -489,15 +517,14 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text-secondary);
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
-  cursor: pointer;
 }
 
-.calendar-day:hover {
+.calendar-day:not(.empty):hover {
   background: rgba(59, 130, 246, 0.1);
   color: var(--text-primary);
 }
@@ -506,34 +533,34 @@ header {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   font-weight: 700;
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
 }
 
-.calendar-day.other-month {
-  opacity: 0.3;
+.calendar-day.empty {
+  opacity: 0;
 }
 
 /* Status Widget */
 .status-widget {
-  padding: 16px;
+  padding: 10px;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 11px;
   color: var(--text-secondary);
   font-weight: 600;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 12px var(--success);
+  box-shadow: 0 0 10px var(--success);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -544,13 +571,14 @@ footer {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--card-border);
-  padding: 16px 32px;
+  padding: 10px 20px; /* Reduced from 16px */
   text-align: center;
+  flex-shrink: 0;
 }
 
 footer p {
   margin: 0;
-  font-size: 13px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
@@ -558,7 +586,7 @@ footer p {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -569,7 +597,7 @@ footer p {
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: translateX(-15px);
   }
   to {
     opacity: 1;
@@ -584,7 +612,7 @@ footer p {
   }
   50% {
     opacity: 0.7;
-    transform: scale(1.15);
+    transform: scale(1.1);
   }
 }
 
@@ -594,60 +622,62 @@ footer p {
   }
 }
 
-/* ==================== RESPONSIVE DESIGN ==================== */
-@media (max-width: 1400px) {
-  .three-column-layout {
-    grid-template-columns: 1fr 1fr 350px;
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1600px) {
+  .four-column-layout {
+    grid-template-columns: 1fr 1fr 1fr 260px;
   }
 }
 
-@media (max-width: 1200px) {
-  .three-column-layout {
-    grid-template-columns: 1fr 1fr;
+@media (max-width: 1400px) {
+  .four-column-layout {
+    grid-template-columns: 1fr 1fr 1fr;
   }
   
   .sidebar {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    max-height: 160px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .four-column-layout {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 768px) {
   header {
     flex-direction: column;
-    gap: 16px;
-    padding: 16px;
+    gap: 10px;
+    padding: 10px;
   }
   
-  .three-column-layout {
+  .four-column-layout {
     grid-template-columns: 1fr;
-    padding: 16px;
-    gap: 16px;
+    padding: 10px;
+    gap: 10px;
   }
   
-  .content-list {
-    max-height: 400px;
-  }
-  
-  .time-display,
-  .date-display,
-  .weather-display {
-    font-size: 20px;
+  .sidebar {
+    grid-template-columns: repeat(2, 1fr);
+    max-height: 180px;
   }
 }
 
 @media (max-width: 480px) {
   .logo-photo {
-    height: 50px;
-    width: 50px;
+    height: 40px;
+    width: 40px;
   }
   
   .logo-name {
-    font-size: 24px;
+    font-size: 20px;
   }
   
-  .header-title {
-    font-size: 16px;
+  .sidebar {
+    grid-template-columns: 1fr;
   }
 }
