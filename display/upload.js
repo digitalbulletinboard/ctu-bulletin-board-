@@ -1,9 +1,9 @@
 // ImgBB Image Upload Integration for CTU Bulletin Board
 console.log('ImgBB Upload module loading...');
 
-// ⚠️ IMPORTANT: Replace with your ImgBB API key
+// ⚠️ IMPORTANT: ImgBB API key configured
 // Get free API key at: https://api.imgbb.com/
-const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144'; // ← PUT YOUR API KEY HERE
+const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144';
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
