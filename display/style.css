@@ -174,7 +174,7 @@ header {
   transform: translateY(-2px);
 }
 
-/* ==================== ULTRA-COMPACT FOUR-COLUMN LAYOUT ==================== */
+/* ==================== TWO-ROW LAYOUT ==================== */
 .four-column-layout {
   position: relative;
   z-index: 1;
@@ -184,13 +184,14 @@ header {
   width: 100%;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 240px;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr auto; /* Top row fills, bottom row auto-sizes */
   gap: 10px;
   overflow: hidden;
   height: calc(100vh - 90px);
 }
 
-/* ==================== COMPACT PANELS ==================== */
+/* ==================== TOP ROW PANELS (SHORTER) ==================== */
 .panel {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
@@ -203,7 +204,7 @@ header {
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  height: 100%;
+  grid-row: 1; /* Top row */
 }
 
 .panel::before {
@@ -352,28 +353,14 @@ header {
   font-size: 11px;
 }
 
-/* ==================== COMPACT SIDEBAR ==================== */
+/* ==================== BOTTOM ROW SIDEBAR (COMPACT) ==================== */
 .sidebar {
-  display: flex;
-  flex-direction: column;
+  grid-column: 1 / -1; /* Spans all 4 columns */
+  grid-row: 2; /* Bottom row */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); /* 5 equal columns for widgets */
   gap: 8px;
   animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding-right: 3px;
-}
-
-.sidebar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 10px;
 }
 
 .widget {
@@ -387,6 +374,8 @@ header {
   overflow: hidden;
   transition: all 0.3s ease;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .widget:hover {
@@ -469,14 +458,15 @@ header {
   font-weight: 500;
 }
 
-/* Ultra-Compact Mini Calendar */
+/* Mini Calendar - Spans 2 columns */
 .mini-calendar-widget {
   padding: 8px;
+  grid-column: span 2;
 }
 
 .mini-calendar-header {
-  margin-bottom: 8px;
-  padding-bottom: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -492,7 +482,7 @@ header {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 2px;
 }
 
 .calendar-day-header {
@@ -500,7 +490,7 @@ header {
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
-  padding: 3px 0;
+  padding: 2px 0;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
@@ -540,9 +530,9 @@ header {
   opacity: 0;
 }
 
-/* Compact Status Widget */
+/* Status Widget - Compact */
 .status-widget {
-  padding: 8px;
+  padding: 10px;
 }
 
 .status-indicator {
@@ -550,14 +540,14 @@ header {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-secondary);
   font-weight: 600;
 }
 
 .status-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--success);
   box-shadow: 0 0 8px var(--success);
@@ -625,26 +615,36 @@ footer p {
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 1600px) {
   .four-column-layout {
-    grid-template-columns: 1fr 1fr 1fr 220px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+  
+  .sidebar {
+    grid-template-columns: repeat(5, 1fr);
   }
 }
 
 @media (max-width: 1400px) {
   .four-column-layout {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
   }
   
   .sidebar {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .panel:last-of-type {
     grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    max-height: 140px;
+    max-height: 200px;
   }
 }
 
 @media (max-width: 1000px) {
   .four-column-layout {
     grid-template-columns: 1fr 1fr;
+  }
+  
+  .sidebar {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -663,7 +663,10 @@ footer p {
   
   .sidebar {
     grid-template-columns: repeat(2, 1fr);
-    max-height: 160px;
+  }
+  
+  .mini-calendar-widget {
+    grid-column: span 2;
   }
 }
 
@@ -679,5 +682,9 @@ footer p {
   
   .sidebar {
     grid-template-columns: 1fr;
+  }
+  
+  .mini-calendar-widget {
+    grid-column: span 1;
   }
 }
