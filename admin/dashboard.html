@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CTU Bulletin Board Admin - Dashboard</title>
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -43,7 +43,7 @@
   </header>
 
   <!-- Main Grid -->
-  <main class="grid">
+  <main class="grid-dashboard">
 
     <!-- CREATE / EDIT FORM -->
     <section class="card panel">
@@ -63,12 +63,11 @@
             </svg>
             Content Type
           </label>
-         <select id="type" required>
-        <option value="announcements">Announcements</option>
-      <option value="events">Events</option>
-      <option value="academicCalendar">Academic Calendar</option>
-    </select>
-
+          <select id="type" required>
+            <option value="announcements">Announcements</option>
+            <option value="events">Events & Notices</option>
+            <option value="academicCalendar">Academic Calendar</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -145,7 +144,7 @@
               </div>
             </div>
 
-            <!-- Image URL Display (after upload) -->
+            <!-- Image URL Display -->
             <div class="image-url-display hidden" id="imageUrlDisplay">
               <label>Image URL:</label>
               <div class="url-input-group">
@@ -224,12 +223,18 @@
       </h2>
       <div id="eventList" class="list"></div>
     </section>
-      <!-- ACADEMIC CALENDAR LIST -->
-  <section class="card panel">
-    <h2>Academic Calendar</h2>
-    <div id="calendarList" class="list"></div>
-  </section>
 
+    <!-- ACADEMIC CALENDAR LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 2V4M13 2V4M3 8H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Academic Calendar
+      </h2>
+      <div id="calendarList" class="list"></div>
+    </section>
 
   </main>
 
