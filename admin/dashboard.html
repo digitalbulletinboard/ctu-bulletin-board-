@@ -10,6 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
   <!-- Top Bar -->
   <header class="topbar">
     <div>
@@ -34,10 +42,10 @@
     </div>
   </header>
 
-  <!-- Main Grid - Four Columns -->
-  <main class="grid-dashboard">
+  <!-- Main Grid -->
+  <main class="grid">
 
-    <!-- Column 1: CREATE / EDIT FORM -->
+    <!-- CREATE / EDIT FORM -->
     <section class="card panel">
       <h2 id="formTitle">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
@@ -55,11 +63,12 @@
             </svg>
             Content Type
           </label>
-          <select id="type" required>
-            <option value="announcements">Announcements</option>
-            <option value="events">Events</option>
-            <option value="academicCalendar">Academic Calendar</option>
-          </select>
+         <select id="type" required>
+        <option value="announcements">Announcements</option>
+      <option value="events">Events</option>
+      <option value="academicCalendar">Academic Calendar</option>
+    </select>
+
         </div>
 
         <div class="form-group">
@@ -80,7 +89,76 @@
             </svg>
             Content
           </label>
-          <textarea id="content" rows="3" placeholder="Enter details..." required></textarea>
+          <textarea id="content" rows="4" placeholder="Enter details..." required></textarea>
+        </div>
+
+        <!-- IMAGE UPLOAD SECTION -->
+        <div class="form-group">
+          <label for="imageUpload">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+              <path d="M12 10L9 7L5 11L3 9L2 10V12C2 13.1046 2.89543 14 4 14H12C13.1046 14 14 13.1046 14 12V10H12Z" fill="currentColor"/>
+            </svg>
+            Image (Optional)
+          </label>
+          
+          <div class="image-upload-container">
+            <!-- Upload Area -->
+            <div class="image-upload-area" id="imageUploadArea">
+              <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M28 20V25.3333C28 26.0406 27.719 26.7189 27.219 27.219C26.7189 27.719 26.0406 28 25.3333 28H6.66667C5.95942 28 5.28115 27.719 4.78105 27.219C4.28095 26.7189 4 26.0406 4 25.3333V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22.6667 10.6667L16 4L9.33334 10.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 4V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p class="upload-text">Click to upload image</p>
+              <p class="upload-hint">PNG, JPG, GIF (max 10MB)</p>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="image-preview hidden" id="imagePreview">
+              <img id="previewImg" src="" alt="Preview">
+              <div class="image-preview-overlay">
+                <div class="image-preview-info">
+                  <span id="imageName"></span>
+                  <span id="imageSize"></span>
+                </div>
+                <div class="image-preview-actions">
+                  <button type="button" class="btn-icon" id="removeImageBtn" title="Remove image">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div class="upload-progress hidden" id="uploadProgress">
+              <div class="progress-info">
+                <span id="progressText">Uploading...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+              </div>
+            </div>
+
+            <!-- Image URL Display (after upload) -->
+            <div class="image-url-display hidden" id="imageUrlDisplay">
+              <label>Image URL:</label>
+              <div class="url-input-group">
+                <input type="text" id="imageUrl" readonly>
+                <button type="button" class="btn-icon" id="copyUrlBtn" title="Copy URL">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 4V3C6 2.44772 6.44772 2 7 2H13C13.5523 2 14 2.44772 14 3V9C14 9.55228 13.5523 10 13 10H12" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -120,7 +198,7 @@
       </form>
     </section>
 
-    <!-- Column 2: ANNOUNCEMENTS LIST -->
+    <!-- ANNOUNCEMENTS LIST -->
     <section class="card panel">
       <h2>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
@@ -132,7 +210,7 @@
       <div id="annList" class="list"></div>
     </section>
 
-    <!-- Column 3: EVENTS LIST -->
+    <!-- EVENTS LIST -->
     <section class="card panel">
       <h2>
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
@@ -146,18 +224,12 @@
       </h2>
       <div id="eventList" class="list"></div>
     </section>
+      <!-- ACADEMIC CALENDAR LIST -->
+  <section class="card panel">
+    <h2>Academic Calendar</h2>
+    <div id="calendarList" class="list"></div>
+  </section>
 
-    <!-- Column 4: ACADEMIC CALENDAR LIST -->
-    <section class="card panel">
-      <h2>
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
-          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M7 2V4M13 2V4M3 8H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        Academic Calendar
-      </h2>
-      <div id="calendarList" class="list"></div>
-    </section>
 
   </main>
 
