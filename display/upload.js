@@ -3,7 +3,7 @@ console.log('ImgBB Upload module loading...');
 
 // ⚠️ IMPORTANT: Replace with your ImgBB API key
 // Get free API key at: https://api.imgbb.com/
-const IMGBB_API_KEY = 'e28d03a98e325a693cfa0baa5bd7381a'; // ← PUT YOUR API KEY HERE
+const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144'; // ← PUT YOUR API KEY HERE
 
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
