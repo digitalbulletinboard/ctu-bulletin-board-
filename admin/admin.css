@@ -843,3 +843,69 @@ Dashboard*
     grid-template-columns: 1fr;
   }
 }
+
+/* IMAGE GALLERY STYLES */
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.image-item {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.image-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  border-color: var(--primary);
+}
+
+.image-thumbnail {
+  width: 100%;
+  height: 150px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.image-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.image-item:hover .image-thumbnail img {
+  transform: scale(1.1);
+}
+
+.image-info {
+  padding: 10px;
+}
+
+.image-info h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-info .actions {
+  display: flex;
+  gap: 6px;
+}
+
+.image-info .actions button {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 11px;
+  border-radius: 6px;
+}
