@@ -76,6 +76,54 @@ function resetForm() {
   
   // Clear image upload
   clearImage();
+  
+  // Show all fields
+  showAllFormFields();
+}
+
+// =======================
+// FORM FIELD VISIBILITY
+// =======================
+function updateFormFields(contentType) {
+  const contentGroup = document.getElementById('contentGroup');
+  const datesGroup = document.getElementById('datesGroup');
+  const endDateGroup = document.getElementById('endDateGroup');
+  const imageLabel = document.getElementById('imageLabel');
+  const contentField = document.getElementById('content');
+  const startDateField = document.getElementById('startDate');
+  const endDateField = document.getElementById('endDate');
+
+  if (contentType === 'images') {
+    // For Image Gallery: Only title and image required
+    contentGroup.style.display = 'none';
+    datesGroup.style.display = 'none';
+    endDateGroup.style.display = 'none';
+    imageLabel.innerHTML = '<span style="color: #ef4444;">Image (Required) *</span>';
+    
+    contentField.required = false;
+    startDateField.required = false;
+    endDateField.required = false;
+  } else {
+    // For other types: All fields visible
+    contentGroup.style.display = 'block';
+    datesGroup.style.display = 'block';
+    endDateGroup.style.display = 'block';
+    imageLabel.textContent = 'Image (Optional)';
+    
+    contentField.required = true;
+    startDateField.required = true;
+    endDateField.required = true;
+  }
+}
+
+function showAllFormFields() {
+  document.getElementById('contentGroup').style.display = 'block';
+  document.getElementById('datesGroup').style.display = 'block';
+  document.getElementById('endDateGroup').style.display = 'block';
+  document.getElementById('imageLabel').textContent = 'Image (Optional)';
+  document.getElementById('content').required = true;
+  document.getElementById('startDate').required = true;
+  document.getElementById('endDate').required = true;
 }
 
 // =======================
@@ -341,19 +389,36 @@ function renderList(container, docs, collectionName) {
   docs.forEach((d) => {
     const item = d.data();
     const div = document.createElement("div");
-    div.className = "item";
-
-    div.innerHTML = `
-      <h3>${item.title}</h3>
-      <p>${item.content}</p>
-      ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" style="max-width: 100%; margin-top: 8px; border-radius: 8px;">` : ''}
-      <small>Start: ${formatDate(item.startDate)}</small><br>
-      <small>End: ${formatDate(item.endDate)}</small>
-      <div class="actions">
-        <button class="editBtn">Edit</button>
-        <button class="deleteBtn">Delete</button>
-      </div>
-    `;
+    
+    // Special rendering for images
+    if (collectionName === 'images') {
+      div.className = "image-item";
+      div.innerHTML = `
+        <div class="image-thumbnail">
+          <img src="${item.imageUrl}" alt="${item.title}" loading="lazy">
+        </div>
+        <div class="image-info">
+          <h4>${item.title}</h4>
+          <div class="actions">
+            <button class="editBtn">Edit</button>
+            <button class="deleteBtn">Delete</button>
+          </div>
+        </div>
+      `;
+    } else {
+      div.className = "item";
+      div.innerHTML = `
+        <h3>${item.title}</h3>
+        <p>${item.content}</p>
+        ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.title}" style="max-width: 100%; margin-top: 8px; border-radius: 8px;">` : ''}
+        <small>Start: ${formatDate(item.startDate)}</small><br>
+        <small>End: ${formatDate(item.endDate)}</small>
+        <div class="actions">
+          <button class="editBtn">Edit</button>
+          <button class="deleteBtn">Delete</button>
+        </div>
+      `;
+    }
 
     // =======================
     // EDIT
@@ -366,9 +431,15 @@ function renderList(container, docs, collectionName) {
       document.getElementById("type").value = collectionName;
       document.getElementById("type").disabled = true;
       document.getElementById("title").value = item.title;
-      document.getElementById("content").value = item.content;
-      document.getElementById("startDate").value = item.startDate.toDate().toISOString().slice(0, 16);
-      document.getElementById("endDate").value = item.endDate.toDate().toISOString().slice(0, 16);
+      
+      // Update form fields based on type
+      updateFormFields(collectionName);
+      
+      if (collectionName !== 'images') {
+        document.getElementById("content").value = item.content;
+        document.getElementById("startDate").value = item.startDate.toDate().toISOString().slice(0, 16);
+        document.getElementById("endDate").value = item.endDate.toDate().toISOString().slice(0, 16);
+      }
 
       // Load image if exists
       if (item.imageUrl) {
@@ -400,10 +471,18 @@ function renderList(container, docs, collectionName) {
 function initializeDashboard() {
 
   const openDisplayBtn = document.getElementById("openDisplayBtn");
+  const typeSelect = document.getElementById("type");
 
   if (openDisplayBtn) {
     openDisplayBtn.addEventListener("click", () => {
       window.open("../display/", "_blank");
+    });
+  }
+  
+  // Content type change handler
+  if (typeSelect) {
+    typeSelect.addEventListener('change', (e) => {
+      updateFormFields(e.target.value);
     });
   }
   
@@ -424,16 +503,58 @@ function initializeDashboard() {
 
     const collectionName = document.getElementById("type").value;
     const title = document.getElementById("title").value.trim();
-    const content = document.getElementById("content").value.trim();
-    const startDate = toTimestamp(document.getElementById("startDate").value);
-    const endDate = toTimestamp(document.getElementById("endDate").value);
 
     if (!collectionName) {
       showMessage("Please select a content type.");
       return;
     }
 
-    if (!title || !content) {
+    if (!title) {
+      showMessage("Title is required.");
+      return;
+    }
+
+    // For Image Gallery: only title and image required
+    if (collectionName === 'images') {
+      if (!currentImageUrl) {
+        showMessage("Please upload an image.");
+        return;
+      }
+
+      const payload = {
+        title,
+        imageUrl: currentImageUrl,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      };
+
+      try {
+        if (editMode) {
+          await updateDoc(doc(db, editCollection, editId), {
+            title: payload.title,
+            imageUrl: payload.imageUrl,
+            updatedAt: payload.updatedAt
+          });
+          showMessage("Updated successfully!", "success");
+        } else {
+          await addDoc(collection(db, collectionName), payload);
+          showMessage("Image added to gallery!", "success");
+        }
+
+        resetForm();
+      } catch (err) {
+        console.error(err);
+        showMessage("Error saving. Please try again.");
+      }
+      return;
+    }
+
+    // For other content types: all fields required
+    const content = document.getElementById("content").value.trim();
+    const startDate = toTimestamp(document.getElementById("startDate").value);
+    const endDate = toTimestamp(document.getElementById("endDate").value);
+
+    if (!content) {
       showMessage("All fields required.");
       return;
     }
@@ -448,7 +569,7 @@ function initializeDashboard() {
       content,
       startDate,
       endDate,
-      imageUrl: currentImageUrl || '',  // ← ADD IMAGE URL
+      imageUrl: currentImageUrl || '',
       updatedAt: Timestamp.now()
     };
 
@@ -475,6 +596,7 @@ function initializeDashboard() {
   const annList = document.getElementById("annList");
   const eventList = document.getElementById("eventList");
   const calendarList = document.getElementById("calendarList");
+  const imageList = document.getElementById("imageList");
 
   if (annList) {
     const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
@@ -499,6 +621,14 @@ function initializeDashboard() {
       renderList(calendarList, docs, "academicCalendar");
     });
   }
+
+  if (imageList) {
+    const q = query(collection(db, "images"), orderBy("createdAt", "desc"));
+    onSnapshot(q, (snapshot) => {
+      const docs = snapshot.docs;
+      renderList(imageList, docs, "images");
+    });
+  }
 }
 
 // Run on DOM ready
@@ -508,6 +638,6 @@ if (document.readyState === "loading") {
   initializeDashboard();
 }
 
-console.log('✅ Admin dashboard with image upload ready!');
+console.log('✅ Admin dashboard with Image Gallery ready!');
 console.log('📸 ImgBB API configured');
-console.log('🔗 Open Display button configured');
+console.log('🖼️ Image Gallery enabled');
