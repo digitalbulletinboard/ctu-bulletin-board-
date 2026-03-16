@@ -12,17 +12,18 @@ import {
 const announcementsContainer = document.getElementById("announcements");
 const eventsContainer = document.getElementById("events");
 const academicCalendarContainer = document.getElementById("academicCalendar");
+const imageGalleryContainer = document.getElementById("imageGallery");
 
 const annCountEl = document.getElementById("annCount");
 const eventCountEl = document.getElementById("eventCount");
 const calendarCountEl = document.getElementById("calendarCount");
+const imageCountEl = document.getElementById("imageCount");
 
 const currentTimeEl = document.getElementById("currentTime");
 const currentDateEl = document.getElementById("currentDate");
 const dayOfWeekEl = document.getElementById("dayOfWeek");
 const timeZoneEl = document.getElementById("timeZone");
 const weatherEl = document.getElementById("weather");
-const weatherLocationEl = document.getElementById("weatherLocation");
 
 // =======================
 // TIME & DATE
@@ -93,9 +94,9 @@ loadWeather();
 setInterval(loadWeather, 30 * 60 * 1000);
 
 // =======================
-// RENDER FUNCTION WITH HIGH-RES IMAGE SUPPORT
+// RENDER FUNCTIONS
 // =======================
-function renderItems(container, data, countEl) {
+function renderItems(container, data, countEl, isImageGallery = false) {
   if (!container) return;
 
   container.innerHTML = "";
@@ -103,75 +104,85 @@ function renderItems(container, data, countEl) {
   if (data.length === 0) {
     container.innerHTML = `
       <div class="loading-state">
-        <p>No active content</p>
+        <p>No ${isImageGallery ? 'images' : 'active content'} yet</p>
       </div>
     `;
     if (countEl) countEl.textContent = "0";
     return;
   }
 
-  data.forEach(item => {
-    const div = document.createElement("div");
-    div.className = "announcement-card";
-    
-    let html = '';
-    
-    // PRIORITY: Show image if exists
-    if (item.imageUrl && item.imageUrl.trim() !== '') {
-      html += `
-        <div class="announcement-image-large">
+  if (isImageGallery) {
+    // Render image gallery
+    data.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "gallery-image-card";
+      div.innerHTML = `
+        <div class="gallery-image-wrapper">
           <img src="${item.imageUrl}" 
                alt="${item.title}" 
                loading="lazy" 
-               onerror="console.error('Image failed to load:', this.src); this.parentElement.style.display='none';">
+               onerror="this.parentElement.parentElement.style.display='none'">
+        </div>
+        <div class="gallery-image-title">${item.title}</div>
+      `;
+      container.appendChild(div);
+    });
+  } else {
+    // Render regular content with images
+    data.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "announcement-card";
+      
+      let html = '';
+      
+      if (item.imageUrl && item.imageUrl.trim() !== '') {
+        html += `
+          <div class="announcement-image-large">
+            <img src="${item.imageUrl}" 
+                 alt="${item.title}" 
+                 loading="lazy" 
+                 onerror="this.parentElement.style.display='none'">
+          </div>
+        `;
+      }
+      
+      html += `
+        <div class="announcement-content">
+          <h3 class="announcement-title">${item.title}</h3>
+          <p class="announcement-text">${item.content}</p>
         </div>
       `;
-    }
-    
-    // Content section
-    html += `
-      <div class="announcement-content">
-        <h3 class="announcement-title">${item.title}</h3>
-        <p class="announcement-text">${item.content}</p>
-      </div>
-    `;
-    
-    div.innerHTML = html;
-    container.appendChild(div);
-  });
+      
+      div.innerHTML = html;
+      container.appendChild(div);
+    });
+  }
 
   if (countEl) countEl.textContent = data.length;
-  
-  console.log(`✅ Rendered ${data.length} items with images`);
 }
 
 // =======================
 // FIRESTORE LISTENERS
 // =======================
-function listenCollection(container, collectionName, countEl) {
-  const q = query(collection(db, collectionName), orderBy("startDate", "asc"));
+function listenCollection(container, collectionName, countEl, isImageGallery = false) {
+  const q = query(collection(db, collectionName), orderBy("createdAt", "desc"));
 
   onSnapshot(q, (snapshot) => {
-    const now = new Date();
+    let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    const data = snapshot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(item => {
+    // For non-image galleries, filter by date
+    if (!isImageGallery) {
+      const now = new Date();
+      data = data.filter(item => {
         const start = item.startDate?.toDate();
         const end = item.endDate?.toDate();
         return start && end && end >= now;
       });
+    }
 
-    console.log(`📊 ${collectionName}: ${data.length} active items`);
+    console.log(`📊 ${collectionName}: ${data.length} items`);
     
-    // Log items with images
-    data.forEach(item => {
-      if (item.imageUrl) {
-        console.log(`📸 ${item.title}: ${item.imageUrl}`);
-      }
-    });
-
-    renderItems(container, data, countEl);
+    renderItems(container, data, countEl, isImageGallery);
   }, (error) => {
     console.error(`Error listening to ${collectionName}:`, error);
   });
@@ -191,27 +202,22 @@ function renderMiniCalendar() {
   const month = now.getMonth();
   const today = now.getDate();
 
-  // Set month/year header
   calendarMonth.textContent = now.toLocaleDateString('en-US', { 
     month: 'long', 
     year: 'numeric' 
   });
 
-  // Get first day of month and days in month
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Clear existing days
   calendarDays.innerHTML = '';
 
-  // Add empty cells for days before month starts
   for (let i = 0; i < firstDay; i++) {
     const emptyDay = document.createElement('div');
     emptyDay.className = 'calendar-day empty';
     calendarDays.appendChild(emptyDay);
   }
 
-  // Add days of month
   for (let day = 1; day <= daysInMonth; day++) {
     const dayEl = document.createElement('div');
     dayEl.className = 'calendar-day';
@@ -229,23 +235,19 @@ function renderMiniCalendar() {
 // INITIALIZE
 // =======================
 function initialize() {
-  console.log('🚀 Initializing display page with image support...');
+  console.log('🚀 Initializing display page...');
   
-  // Listen to collections
   listenCollection(announcementsContainer, "announcements", annCountEl);
   listenCollection(eventsContainer, "events", eventCountEl);
   listenCollection(academicCalendarContainer, "academicCalendar", calendarCountEl);
+  listenCollection(imageGalleryContainer, "images", imageCountEl, true);
 
-  // Render mini calendar
   renderMiniCalendar();
-  
-  // Update calendar daily
   setInterval(renderMiniCalendar, 24 * 60 * 60 * 1000);
   
-  console.log('✅ Display page loaded successfully');
+  console.log('✅ Display page loaded with Image Gallery');
 }
 
-// Run on load
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initialize);
 } else {
