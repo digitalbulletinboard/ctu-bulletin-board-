@@ -20,7 +20,9 @@ const calendarCountEl = document.getElementById("calendarCount");
 const currentTimeEl = document.getElementById("currentTime");
 const currentDateEl = document.getElementById("currentDate");
 const dayOfWeekEl = document.getElementById("dayOfWeek");
+const timeZoneEl = document.getElementById("timeZone");
 const weatherEl = document.getElementById("weather");
+const weatherLocationEl = document.getElementById("weatherLocation");
 
 // =======================
 // TIME & DATE
@@ -29,15 +31,28 @@ function updateDateTime() {
   const now = new Date();
 
   if (currentTimeEl) {
-    currentTimeEl.textContent = now.toLocaleTimeString();
+    currentTimeEl.textContent = now.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
   }
 
   if (currentDateEl) {
-    currentDateEl.textContent = now.toLocaleDateString();
+    currentDateEl.textContent = now.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
 
   if (dayOfWeekEl) {
     dayOfWeekEl.textContent = now.toLocaleDateString('en-US', { weekday: 'long' });
+  }
+
+  if (timeZoneEl) {
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    timeZoneEl.textContent = timeZone.split('/').pop().replace(/_/g, ' ');
   }
 }
 
@@ -65,14 +80,12 @@ function loadWeather() {
       const desc = data.weather[0].description;
 
       weatherEl.innerHTML = `
-        <div>
-          <strong>${temp}°C</strong><br>
-          <small>${desc}</small>
-        </div>
+        <div style="font-size: 16px; font-weight: 700;">${temp}°C</div>
+        <div style="font-size: 10px; opacity: 0.8; text-transform: capitalize;">${desc}</div>
       `;
     })
     .catch(() => {
-      if (weatherEl) weatherEl.textContent = "Weather unavailable";
+      if (weatherEl) weatherEl.textContent = "Unavailable";
     });
 }
 
@@ -80,7 +93,7 @@ loadWeather();
 setInterval(loadWeather, 30 * 60 * 1000);
 
 // =======================
-// RENDER FUNCTION
+// RENDER FUNCTION WITH IMAGE SUPPORT
 // =======================
 function renderItems(container, data, countEl) {
   if (!container) return;
@@ -88,7 +101,11 @@ function renderItems(container, data, countEl) {
   container.innerHTML = "";
 
   if (data.length === 0) {
-    container.innerHTML = `<p style="opacity:.6">No active content</p>`;
+    container.innerHTML = `
+      <div class="loading-state">
+        <p>No active content</p>
+      </div>
+    `;
     if (countEl) countEl.textContent = "0";
     return;
   }
@@ -96,10 +113,28 @@ function renderItems(container, data, countEl) {
   data.forEach(item => {
     const div = document.createElement("div");
     div.className = "announcement";
-    div.innerHTML = `
-      <h3>${item.title}</h3>
-      <p>${item.content}</p>
+    
+    // Build HTML with image support
+    let html = '';
+    
+    // Add image if exists
+    if (item.imageUrl && item.imageUrl.trim() !== '') {
+      html += `
+        <div class="announcement-image">
+          <img src="${item.imageUrl}" alt="${item.title}" loading="lazy" onerror="this.parentElement.style.display='none'">
+        </div>
+      `;
+    }
+    
+    // Add content
+    html += `
+      <div class="announcement-content">
+        <h3>${item.title}</h3>
+        <p>${item.content}</p>
+      </div>
     `;
+    
+    div.innerHTML = html;
     container.appendChild(div);
   });
 
@@ -126,53 +161,77 @@ function listenCollection(container, collectionName, countEl) {
     renderItems(container, data, countEl);
   });
 }
+
 // =======================
 // MINI CALENDAR
 // =======================
-
-const calendarMonthEl = document.getElementById("calendarMonth");
-const calendarDaysEl = document.getElementById("calendarDays");
-
-function generateMiniCalendar() {
-  if (!calendarMonthEl || !calendarDaysEl) return;
+function renderMiniCalendar() {
+  const calendarMonth = document.getElementById('calendarMonth');
+  const calendarDays = document.getElementById('calendarDays');
+  
+  if (!calendarMonth || !calendarDays) return;
 
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth();
   const today = now.getDate();
 
-  // Set month title
-  calendarMonthEl.textContent = now.toLocaleDateString('en-US', {
-    month: 'long',
-    year: 'numeric'
+  // Set month/year header
+  calendarMonth.textContent = now.toLocaleDateString('en-US', { 
+    month: 'long', 
+    year: 'numeric' 
   });
 
+  // Get first day of month and days in month
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  let html = "";
+  // Clear existing days
+  calendarDays.innerHTML = '';
 
-  // Empty cells before first day
+  // Add empty cells for days before month starts
   for (let i = 0; i < firstDay; i++) {
-    html += `<div class="calendar-day empty"></div>`;
+    const emptyDay = document.createElement('div');
+    emptyDay.className = 'calendar-day empty';
+    calendarDays.appendChild(emptyDay);
   }
 
-  // Month days
+  // Add days of month
   for (let day = 1; day <= daysInMonth; day++) {
-    const isToday = day === today ? " today" : "";
-    html += `<div class="calendar-day${isToday}">${day}</div>`;
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day';
+    dayEl.textContent = day;
+    
+    if (day === today) {
+      dayEl.classList.add('today');
+    }
+    
+    calendarDays.appendChild(dayEl);
   }
-
-  calendarDaysEl.innerHTML = html;
 }
 
-generateMiniCalendar();
-
 // =======================
-// INIT
+// INITIALIZE
 // =======================
-console.log("Display Loaded");
+function initialize() {
+  // Listen to collections
+  listenCollection(announcementsContainer, "announcements", annCountEl);
+  listenCollection(eventsContainer, "events", eventCountEl);
+  listenCollection(academicCalendarContainer, "academicCalendar", calendarCountEl);
 
-listenCollection(announcementsContainer, "announcements", annCountEl);
-listenCollection(eventsContainer, "events", eventCountEl);
-listenCollection(academicCalendarContainer, "academicCalendar", calendarCountEl);
+  // Render mini calendar
+  renderMiniCalendar();
+  
+  // Update calendar daily
+  setInterval(renderMiniCalendar, 24 * 60 * 60 * 1000);
+}
+
+// Run on load
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initialize);
+} else {
+  initialize();
+}
+
+console.log('✅ Display app loaded with image support');
+console.log('📸 Images from admin will display automatically');
