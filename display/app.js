@@ -93,7 +93,7 @@ loadWeather();
 setInterval(loadWeather, 30 * 60 * 1000);
 
 // =======================
-// RENDER FUNCTION WITH IMAGE SUPPORT
+// RENDER FUNCTION WITH HIGH-RES IMAGE SUPPORT
 // =======================
 function renderItems(container, data, countEl) {
   if (!container) return;
@@ -112,25 +112,27 @@ function renderItems(container, data, countEl) {
 
   data.forEach(item => {
     const div = document.createElement("div");
-    div.className = "announcement";
+    div.className = "announcement-card";
     
-    // Build HTML with image support
     let html = '';
     
-    // Add image if exists
+    // PRIORITY: Show image if exists
     if (item.imageUrl && item.imageUrl.trim() !== '') {
       html += `
-        <div class="announcement-image">
-          <img src="${item.imageUrl}" alt="${item.title}" loading="lazy" onerror="this.parentElement.style.display='none'">
+        <div class="announcement-image-large">
+          <img src="${item.imageUrl}" 
+               alt="${item.title}" 
+               loading="lazy" 
+               onerror="console.error('Image failed to load:', this.src); this.parentElement.style.display='none';">
         </div>
       `;
     }
     
-    // Add content
+    // Content section
     html += `
       <div class="announcement-content">
-        <h3>${item.title}</h3>
-        <p>${item.content}</p>
+        <h3 class="announcement-title">${item.title}</h3>
+        <p class="announcement-text">${item.content}</p>
       </div>
     `;
     
@@ -139,6 +141,8 @@ function renderItems(container, data, countEl) {
   });
 
   if (countEl) countEl.textContent = data.length;
+  
+  console.log(`✅ Rendered ${data.length} items with images`);
 }
 
 // =======================
@@ -158,7 +162,18 @@ function listenCollection(container, collectionName, countEl) {
         return start && end && end >= now;
       });
 
+    console.log(`📊 ${collectionName}: ${data.length} active items`);
+    
+    // Log items with images
+    data.forEach(item => {
+      if (item.imageUrl) {
+        console.log(`📸 ${item.title}: ${item.imageUrl}`);
+      }
+    });
+
     renderItems(container, data, countEl);
+  }, (error) => {
+    console.error(`Error listening to ${collectionName}:`, error);
   });
 }
 
@@ -214,6 +229,8 @@ function renderMiniCalendar() {
 // INITIALIZE
 // =======================
 function initialize() {
+  console.log('🚀 Initializing display page with image support...');
+  
   // Listen to collections
   listenCollection(announcementsContainer, "announcements", annCountEl);
   listenCollection(eventsContainer, "events", eventCountEl);
@@ -224,6 +241,8 @@ function initialize() {
   
   // Update calendar daily
   setInterval(renderMiniCalendar, 24 * 60 * 60 * 1000);
+  
+  console.log('✅ Display page loaded successfully');
 }
 
 // Run on load
@@ -232,6 +251,3 @@ if (document.readyState === "loading") {
 } else {
   initialize();
 }
-
-console.log('✅ Display app loaded with image support');
-console.log('📸 Images from admin will display automatically');
