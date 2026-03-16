@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CTU Digital Bulletin Board</title>
-  <link rel="shortcut icon" href="ctulogo.jpg" type="image/x-icon">
-  <link rel="stylesheet" href="style.css">
+  <title>CTU-SF Digital Bulletin Board</title>
+  <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Animated Background -->
   <div class="bg-animation">
     <div class="gradient-orb orb-1"></div>
     <div class="gradient-orb orb-2"></div>
@@ -18,176 +18,124 @@
     <div class="grid-pattern"></div>
   </div>
 
+  <!-- Header -->
   <header>
     <div class="logo-section">
-      <img class="logo-photo" src="ctulogo.jpg" alt="CTU Logo" />
+      <img src="ctulogo.jpg" alt="CTU Logo" class="logo-photo">
       <div>
-        <p class="logo-name">CTU-SF</p>
-        <p class="logo-subtitle">San Francisco Campus</p>
+        <h1 class="logo-name">CTU-SF</h1>
+        <p class="logo-subtitle">Cebu Technological University - San Francisco Campus</p>
       </div>
     </div>
-    
-    <a href="../admin/index.html" class="header-title">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="vertical-align: middle;">
-        <path d="M10 2L2 7L10 12L18 7L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 13L10 18L18 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <a href="#" class="header-title">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
       </svg>
       Digital Bulletin Board
     </a>
   </header>
 
+  <!-- Main Content - 4 Columns -->
   <main class="four-column-layout">
     
-    <!-- Announcements -->
-    <section class="panel announcements-panel">
+    <!-- Announcements Panel -->
+    <section class="panel">
       <div class="panel-header">
         <h2>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5C12 5 8 5 8 8C8 12 12 12 12 16V19M12 19H10M12 19H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           Announcements
         </h2>
-        <div class="panel-badge">
-          <span id="annCount">0</span>
-        </div>
+        <span class="panel-badge" id="annCount">0</span>
       </div>
-      <div id="announcements" class="content-list">
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
+      <div class="content-list" id="announcements"></div>
     </section>
 
-    <!-- Events -->
-    <section class="panel events-panel">
+    <!-- Events Panel -->
+    <section class="panel">
       <div class="panel-header">
         <h2>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 2V4M16 2V4M3 9H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="8" cy="14" r="1.5" fill="currentColor"/>
-            <circle cx="12" cy="14" r="1.5" fill="currentColor"/>
-            <circle cx="16" cy="14" r="1.5" fill="currentColor"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 2V6M16 2V6M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           Events & Notices
         </h2>
-        <div class="panel-badge">
-          <span id="eventCount">0</span>
-        </div>
+        <span class="panel-badge" id="eventCount">0</span>
       </div>
-      <div id="events" class="content-list">
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
+      <div class="content-list" id="events"></div>
     </section>
 
-    <!-- Academic Calendar -->
-    <section class="panel calendar-panel">
+    <!-- Academic Calendar Panel -->
+    <section class="panel">
       <div class="panel-header">
         <h2>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <rect x="3" y="4" width="18" height="17" rx="2" stroke="currentColor" stroke-width="2"/>
-            <path d="M8 2V4M16 2V4M3 9H21" stroke="currentColor" stroke-width="2"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 2V6M16 2V6M3 10H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
           Academic Calendar
         </h2>
-        <div class="panel-badge">
-          <span id="calendarCount">0</span>
-        </div>
+        <span class="panel-badge" id="calendarCount">0</span>
       </div>
-      <div id="academicCalendar" class="content-list">
-        <div class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>Loading...</p>
-        </div>
-      </div>
+      <div class="content-list" id="academicCalendar"></div>
     </section>
 
-    <!-- Upload Widget Panel -->
-    <section class="panel upload-panel">
+    <!-- Image Gallery Panel -->
+    <section class="panel">
       <div class="panel-header">
         <h2>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M4 16L8.586 11.414C9.367 10.633 10.633 10.633 11.414 11.414L16 16M14 14L15.586 12.414C16.367 11.633 17.633 11.633 18.414 12.414L20 14M14 8H14.01M6 20H18C18.5304 20 19.0391 19.7893 19.4142 19.4142C19.7893 19.0391 20 18.5304 20 18V6C20 5.46957 19.7893 4.96086 19.4142 4.58579C19.0391 4.21071 18.5304 4 18 4H6C5.46957 4 4.96086 4.21071 4.58579 4.58579C4.21071 4.96086 4 5.46957 4 6V18C4 18.5304 4.21071 19.0391 4.58579 19.4142C4.96086 19.7893 5.46957 20 6 20Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+            <path d="M21 15L16 10L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           Image Gallery
         </h2>
-        <div class="panel-actions">
-          <button id="uploadBtn" class="upload-trigger-btn" title="Upload new image">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M8 2L8 14M2 8L14 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </button>
-          <div class="panel-badge">
-            <span id="galleryCount">0</span>
-          </div>
-        </div>
+        <span class="panel-badge" id="imageCount">0</span>
       </div>
-      
-      <!-- Hidden Upload Input -->
-      <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
-      
-      <!-- Image Gallery Grid -->
-      <div id="imageGallery" class="image-gallery">
-        <div class="gallery-empty">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <path d="M6 36L16.172 25.828C17.734 24.266 20.266 24.266 21.828 25.828L32 36M28 30L31.172 26.828C32.734 25.266 35.266 25.266 36.828 26.828L42 32M28 16H28.02M10 42H38C39.0609 42 40.0783 41.5786 40.8284 40.8284C41.5786 40.0783 42 39.0609 42 38V10C42 8.93913 41.5786 7.92172 40.8284 7.17157C40.0783 6.42143 39.0609 6 38 6H10C8.93913 6 7.92172 6.42143 7.17157 7.17157C6.42143 7.92172 6 8.93913 6 10V38C6 39.0609 6.42143 40.0783 7.17157 40.8284C7.92172 41.5786 8.93913 42 10 42Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <p>No images yet</p>
-          <p class="empty-hint">Click + to upload</p>
-        </div>
-      </div>
-
-      <!-- Upload Progress -->
-      <div id="uploadStatus" class="upload-status hidden">
-        <div class="status-message"></div>
-        <div class="upload-progress">
-          <div class="progress-bar"></div>
-        </div>
-      </div>
+      <div class="content-list image-gallery-grid" id="imageGallery"></div>
     </section>
 
-    <!-- Bottom Row: Widgets -->
+    <!-- Bottom Widgets Row -->
     <aside class="sidebar">
       
-      <!-- Time -->
+      <!-- Time Widget -->
       <div class="widget time-widget">
         <div class="widget-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="13" stroke="currentColor" stroke-width="2"/>
-            <path d="M16 8V16L21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </div>
         <div class="widget-content">
           <div class="widget-label">Current Time</div>
-          <div id="currentTime" class="time-display">--:--:--</div>
-          <div id="timeZone" class="time-zone">Loading...</div>
+          <div class="time-display" id="currentTime">00:00:00</div>
+          <div class="time-zone" id="timeZone">PST</div>
         </div>
       </div>
 
-      <!-- Date -->
-      <div class="widget calendar-widget">
+      <!-- Date Widget -->
+      <div class="widget date-widget">
         <div class="widget-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="4" y="6" width="24" height="22" rx="3" stroke="currentColor" stroke-width="2"/>
-            <path d="M10 2V6M22 2V6M4 12H28" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2"/>
+            <path d="M8 2V6M16 2V6M3 10H21" stroke="currentColor" stroke-width="2"/>
           </svg>
         </div>
         <div class="widget-content">
-          <div class="widget-label">Today's Date</div>
-          <div id="currentDate" class="date-display">Loading...</div>
-          <div id="dayOfWeek" class="day-of-week">Loading...</div>
+          <div class="widget-label">Today</div>
+          <div class="date-display" id="currentDate">January 1, 2026</div>
+          <div class="day-of-week" id="dayOfWeek">Monday</div>
         </div>
       </div>
 
-      <!-- Mini Calendar (spans 2 columns) -->
+      <!-- Mini Calendar Widget -->
       <div class="widget mini-calendar-widget">
         <div class="mini-calendar-header">
-          <h3 id="calendarMonth">Loading...</h3>
+          <h3 id="calendarMonth">March 2026</h3>
         </div>
         <div class="calendar-grid">
           <div class="calendar-day-header">S</div>
@@ -197,30 +145,30 @@
           <div class="calendar-day-header">T</div>
           <div class="calendar-day-header">F</div>
           <div class="calendar-day-header">S</div>
-          <div id="calendarDays" class="calendar-days"></div>
+          <div class="calendar-days" id="calendarDays"></div>
         </div>
       </div>
 
-      <!-- Weather -->
+      <!-- Weather Widget -->
       <div class="widget weather-widget">
-        <div class="widget-icon weather-icon">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <circle cx="16" cy="16" r="6" stroke="currentColor" stroke-width="2"/>
-            <path d="M16 4V6M16 26V28M28 16H26M6 16H4M24 8L22.5 9.5M9.5 22.5L8 24M24 24L22.5 22.5M9.5 9.5L8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <div class="widget-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C12 2 9 5 9 9C9 11.2091 10.7909 13 13 13C15.2091 13 17 11.2091 17 9C17 5 12 2 12 2Z" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 13V22" stroke="currentColor" stroke-width="2"/>
           </svg>
         </div>
         <div class="widget-content">
           <div class="widget-label">Weather</div>
-          <div id="weather" class="weather-display">Loading...</div>
-          <div id="weatherLocation" class="weather-location">Camotes, Cebu</div>
+          <div class="weather-display" id="weather">Loading...</div>
+          <div class="weather-location">Cebu, Philippines</div>
         </div>
       </div>
 
-      <!-- Status -->
+      <!-- Status Widget -->
       <div class="widget status-widget">
         <div class="status-indicator">
-          <div class="status-dot"></div>
-          <span>Live Updates Active</span>
+          <span class="status-dot"></span>
+          <span>Live</span>
         </div>
       </div>
 
@@ -229,10 +177,9 @@
   </main>
 
   <footer>
-    <p>© 2026 Cebu Technological University – San Francisco Campus</p>
+    <p>&copy; 2026 CTU-SF Digital Bulletin Board. All rights reserved.</p>
   </footer>
 
   <script type="module" src="app.js"></script>
-  <script type="module" src="upload.js"></script>
 </body>
 </html>
