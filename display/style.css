@@ -658,3 +658,30 @@ footer p {
 .four-column-layout {
   grid-template-columns: repeat(4, 1fr);
 }
+
+/* CENTER EMPTY STATE TEXT */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  opacity: 0.6;
+  min-height: 200px;
+}
+
+.loading-state p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ENSURE IMAGE GALLERY EMPTY STATE IS CENTERED */
+.image-gallery-grid .loading-state {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
