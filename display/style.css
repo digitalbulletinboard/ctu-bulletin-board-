@@ -166,7 +166,7 @@ header {
   transform: translateY(-2px);
 }
 
-/* BIGGER CONTENT PANELS - SMALLER WIDGETS */
+/* 75% CONTENT, 25% WIDGETS LAYOUT */
 .four-column-layout {
   position: relative;
   z-index: 1;
@@ -177,7 +177,7 @@ header {
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: 1fr auto;
+  grid-template-rows: 3fr 1fr;
   gap: 8px;
   overflow: hidden;
   height: calc(100vh - 60px);
@@ -270,7 +270,6 @@ header {
   border-radius: 10px;
 }
 
-/* HIGH-RESOLUTION CONTENT CARDS */
 .announcement-card {
   padding: 0;
   background: var(--bg-tertiary);
@@ -342,7 +341,6 @@ header {
   line-height: 1.5;
 }
 
-/* CENTER EMPTY STATE */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -360,7 +358,7 @@ header {
   margin: 0;
 }
 
-/* HIGH-RES IMAGE GALLERY */
+/* IMAGE GALLERY */
 .image-gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -380,6 +378,7 @@ header {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   aspect-ratio: 1;
+  position: relative;
 }
 
 .gallery-image-card:hover {
@@ -426,21 +425,21 @@ header {
   text-overflow: ellipsis;
 }
 
-/* MUCH SMALLER WIDGETS */
+/* LARGER WIDGETS - 25% OF SCREEN */
 .sidebar {
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 4px;
+  gap: 8px;
 }
 
 .widget {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
-  padding: 3px 4px;
+  border-radius: 8px;
+  padding: 12px;
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
@@ -448,7 +447,6 @@ header {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 32px;
 }
 
 .widget::before {
@@ -457,25 +455,25 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(90deg, var(--primary), var(--accent));
   opacity: 0.6;
 }
 
 .time-widget,
-.calendar-widget,
+.date-widget,
 .weather-widget {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 10px;
 }
 
 .widget-icon {
-  width: 18px;
-  height: 18px;
+  width: 36px;
+  height: 36px;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
   border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 3px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -484,8 +482,8 @@ header {
 }
 
 .widget-icon svg {
-  width: 11px;
-  height: 11px;
+  width: 20px;
+  height: 20px;
 }
 
 .widget-content {
@@ -494,49 +492,47 @@ header {
 }
 
 .widget-label {
-  font-size: 5px;
+  font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.5px;
   font-weight: 600;
-  margin-bottom: 0px;
-  display: none;
+  margin-bottom: 4px;
 }
 
 .time-display,
 .date-display,
 .weather-display {
   font-family: 'Space Grotesk', monospace;
-  font-size: 9px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--text-primary);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .time-zone,
 .day-of-week,
 .weather-location {
-  font-size: 6px;
+  font-size: 11px;
   color: var(--text-muted);
-  margin-top: 1px;
+  margin-top: 2px;
   font-weight: 500;
 }
 
 .mini-calendar-widget {
-  padding: 3px;
+  padding: 8px;
   grid-column: span 2;
-  height: 32px;
 }
 
 .mini-calendar-header {
-  margin-bottom: 2px;
-  padding-bottom: 1px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .mini-calendar-header h3 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 7px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -546,24 +542,23 @@ header {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.5px;
+  gap: 2px;
 }
 
 .calendar-day-header {
-  font-size: 5px;
+  font-size: 9px;
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
-  padding: 0.5px 0;
+  padding: 4px 0;
   text-transform: uppercase;
-  display: none;
 }
 
 .calendar-days {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 0.5px;
+  gap: 2px;
 }
 
 .calendar-day {
@@ -571,10 +566,10 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text-secondary);
-  border-radius: 1px;
+  border-radius: 4px;
   transition: all 0.2s ease;
 }
 
@@ -582,7 +577,7 @@ header {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
   font-weight: 700;
-  box-shadow: 0 1px 2px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
 }
 
 .calendar-day.empty {
@@ -590,29 +585,28 @@ header {
 }
 
 .status-widget {
-  padding: 3px 4px;
+  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
 }
 
 .status-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  font-size: 6px;
+  gap: 8px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-weight: 600;
 }
 
 .status-dot {
-  width: 3px;
-  height: 3px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 4px var(--success);
+  box-shadow: 0 0 10px var(--success);
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -622,14 +616,14 @@ footer {
   background: var(--card-bg);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--card-border);
-  padding: 4px 12px;
+  padding: 6px 12px;
   text-align: center;
   flex-shrink: 0;
 }
 
 footer p {
   margin: 0;
-  font-size: 8px;
+  font-size: 9px;
   color: var(--text-muted);
 }
 
@@ -655,23 +649,14 @@ footer p {
   }
 }
 
-/* RESPONSIVE */
 @media (max-width: 1400px) {
   .four-column-layout {
     grid-template-columns: 1fr 1fr;
-  }
-  
-  .announcement-image-large {
-    height: 180px;
   }
 }
 
 @media (max-width: 768px) {
   .four-column-layout {
     grid-template-columns: 1fr;
-  }
-  
-  .announcement-image-large {
-    height: 160px;
   }
 }
