@@ -94,15 +94,15 @@ function updateFormFields(contentType) {
   const endDateField = document.getElementById('endDate');
 
   if (contentType === 'images') {
-    // For Image Gallery: Only title and image required
+    // For Image Gallery: Title, Image, and Dates required
     contentGroup.style.display = 'none';
-    datesGroup.style.display = 'none';
-    endDateGroup.style.display = 'none';
+    datesGroup.style.display = 'block';
+    endDateGroup.style.display = 'block';
     imageLabel.innerHTML = '<span style="color: #ef4444;">Image (Required) *</span>';
     
     contentField.required = false;
-    startDateField.required = false;
-    endDateField.required = false;
+    startDateField.required = true;
+    endDateField.required = true;
   } else {
     // For other types: All fields visible
     contentGroup.style.display = 'block';
@@ -514,16 +514,26 @@ function initializeDashboard() {
       return;
     }
 
-    // For Image Gallery: only title and image required
+    // For Image Gallery: title, image, and dates required
     if (collectionName === 'images') {
       if (!currentImageUrl) {
         showMessage("Please upload an image.");
         return;
       }
 
+      const startDate = toTimestamp(document.getElementById("startDate").value);
+      const endDate = toTimestamp(document.getElementById("endDate").value);
+
+      if (endDate.toDate() <= startDate.toDate()) {
+        showMessage("End date must be later than start date.");
+        return;
+      }
+
       const payload = {
         title,
         imageUrl: currentImageUrl,
+        startDate,
+        endDate,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
@@ -533,6 +543,8 @@ function initializeDashboard() {
           await updateDoc(doc(db, editCollection, editId), {
             title: payload.title,
             imageUrl: payload.imageUrl,
+            startDate: payload.startDate,
+            endDate: payload.endDate,
             updatedAt: payload.updatedAt
           });
           showMessage("Updated successfully!", "success");
