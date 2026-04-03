@@ -94,6 +94,52 @@ loadWeather();
 setInterval(loadWeather, 30 * 60 * 1000);
 
 // =======================
+// FULLSCREEN IMAGE VIEWER
+// =======================
+function openFullscreen(imageUrl, title) {
+  // Create fullscreen overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'fullscreen-overlay';
+  overlay.innerHTML = `
+    <div class="fullscreen-container">
+      <button class="fullscreen-close" onclick="closeFullscreen()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <img src="${imageUrl}" alt="${title}">
+      <div class="fullscreen-title">${title}</div>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  
+  // Close on overlay click
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeFullscreen();
+    }
+  });
+  
+  // Close on ESC key
+  document.addEventListener('keydown', handleEscKey);
+}
+
+function handleEscKey(e) {
+  if (e.key === 'Escape') {
+    closeFullscreen();
+  }
+}
+
+window.closeFullscreen = function() {
+  const overlay = document.getElementById('fullscreen-overlay');
+  if (overlay) {
+    overlay.remove();
+    document.removeEventListener('keydown', handleEscKey);
+  }
+}
+
+// =======================
 // RENDER FUNCTIONS
 // =======================
 function renderItems(container, data, countEl, isImageGallery = false) {
@@ -112,7 +158,7 @@ function renderItems(container, data, countEl, isImageGallery = false) {
   }
 
   if (isImageGallery) {
-    // Render image gallery
+    // Render image gallery with click handler
     data.forEach(item => {
       const div = document.createElement("div");
       div.className = "gallery-image-card";
@@ -125,6 +171,12 @@ function renderItems(container, data, countEl, isImageGallery = false) {
         </div>
         <div class="gallery-image-title">${item.title}</div>
       `;
+      
+      // Add click event for fullscreen
+      div.addEventListener('click', () => {
+        openFullscreen(item.imageUrl, item.title);
+      });
+      
       container.appendChild(div);
     });
   } else {
@@ -243,7 +295,7 @@ function initialize() {
   renderMiniCalendar();
   setInterval(renderMiniCalendar, 24 * 60 * 60 * 1000);
   
-  console.log('✅ Display page loaded with Image Gallery');
+  console.log('✅ Display page loaded with fullscreen image viewer');
 }
 
 if (document.readyState === "loading") {
