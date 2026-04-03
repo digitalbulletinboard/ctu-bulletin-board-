@@ -170,15 +170,13 @@ function listenCollection(container, collectionName, countEl, isImageGallery = f
   onSnapshot(q, (snapshot) => {
     let data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    // For non-image galleries, filter by date
-    if (!isImageGallery) {
-      const now = new Date();
-      data = data.filter(item => {
-        const start = item.startDate?.toDate();
-        const end = item.endDate?.toDate();
-        return start && end && end >= now;
-      });
-    }
+    // Filter by date for ALL collections including Image Gallery
+    const now = new Date();
+    data = data.filter(item => {
+      const start = item.startDate?.toDate();
+      const end = item.endDate?.toDate();
+      return start && end && end >= now;
+    });
 
     console.log(`📊 ${collectionName}: ${data.length} items`);
     
