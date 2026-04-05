@@ -167,7 +167,7 @@ header {
   transform: translateY(-2px);
 }
 
-/* 65% CONTENT, 35% WIDGETS */
+/* OPTIMIZED FOR 90% ZOOM - 65% CONTENT, 35% WIDGETS */
 .four-column-layout {
   position: relative;
   z-index: 1;
@@ -178,7 +178,7 @@ header {
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: 65vh 35vh;
+  grid-template-rows: 62vh 38vh;
   gap: 8px;
   overflow: hidden;
   max-height: calc(100vh - 74px);
@@ -256,7 +256,7 @@ header {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
-  max-height: calc(65vh - 60px);
+  max-height: calc(62vh - 60px);
 }
 
 .content-list::-webkit-scrollbar {
@@ -365,7 +365,7 @@ header {
   margin: 0;
 }
 
-/* IMAGE GALLERY */
+/* IMAGE GALLERY - SCROLLABLE ON MOBILE */
 .image-gallery-grid {
   display: flex;
   flex-direction: column;
@@ -373,7 +373,7 @@ header {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
-  max-height: calc(65vh - 60px);
+  max-height: calc(62vh - 60px);
 }
 
 .image-gallery-grid::-webkit-scrollbar {
@@ -452,13 +452,13 @@ header {
   background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
 }
 
-/* 35% WIDGETS - LARGE & VISIBLE */
+/* 38% WIDGETS - OPTIMIZED FOR 90% ZOOM */
 .sidebar {
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: 10px;
   height: 100%;
 }
 
@@ -467,7 +467,7 @@ header {
   backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
   border-radius: 10px;
-  padding: 16px;
+  padding: 18px 14px;
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
@@ -498,8 +498,8 @@ header {
 }
 
 .widget-icon {
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: 10px;
@@ -511,8 +511,8 @@ header {
 }
 
 .widget-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
 }
 
 .widget-content {
@@ -521,7 +521,7 @@ header {
 }
 
 .widget-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -533,7 +533,7 @@ header {
 .date-display,
 .weather-display {
   font-family: 'Space Grotesk', monospace;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -542,27 +542,27 @@ header {
 .time-zone,
 .day-of-week,
 .weather-location {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
   margin-top: 4px;
   font-weight: 500;
 }
 
-/* PERFECT CALENDAR - MATCH SCREENSHOT */
+/* PERFECT CALENDAR - FITS AT 90% ZOOM */
 .mini-calendar-widget {
-  padding: 16px;
+  padding: 18px 14px;
   grid-column: span 2;
 }
 
 .mini-calendar-header {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border-color);
 }
 
 .mini-calendar-header h3 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
@@ -572,11 +572,11 @@ header {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .calendar-day-header {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
@@ -588,7 +588,7 @@ header {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 5px;
 }
 
 .calendar-day {
@@ -596,12 +596,12 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 500;
   color: var(--text-secondary);
   border-radius: 8px;
   transition: all 0.2s ease;
-  min-height: 40px;
+  min-height: 44px;
   background: rgba(255, 255, 255, 0.02);
 }
 
@@ -618,7 +618,7 @@ header {
 }
 
 .status-widget {
-  padding: 16px;
+  padding: 18px 14px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -629,14 +629,14 @@ header {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-secondary);
   font-weight: 600;
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: var(--success);
   box-shadow: 0 0 12px var(--success);
@@ -776,12 +776,12 @@ footer p {
   .time-display,
   .date-display,
   .weather-display {
-    font-size: 28px;
+    font-size: 30px;
   }
   
   .calendar-day {
-    font-size: 18px;
-    min-height: 48px;
+    font-size: 20px;
+    min-height: 50px;
   }
 }
 
@@ -789,7 +789,7 @@ footer p {
 @media (min-width: 1024px) and (max-width: 1399px) {
   .four-column-layout {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 60vh 40vh;
+    grid-template-rows: 55vh 45vh;
   }
   
   .sidebar {
@@ -807,18 +807,19 @@ footer p {
     grid-template-columns: 1fr;
     grid-template-rows: auto;
     gap: 12px;
+    overflow-y: auto;
   }
   
   .panel {
     grid-row: auto;
-    min-height: 300px;
+    min-height: 350px;
   }
   
   .sidebar {
     grid-column: 1;
     grid-row: auto;
     grid-template-columns: repeat(2, 1fr);
-    min-height: 200px;
+    min-height: 400px;
   }
   
   .mini-calendar-widget {
@@ -841,11 +842,12 @@ footer p {
     grid-template-rows: auto;
     gap: 10px;
     padding: 10px;
+    overflow-y: auto;
   }
   
   .panel {
     grid-row: auto;
-    min-height: 250px;
+    min-height: 300px;
   }
   
   .sidebar {
@@ -853,16 +855,17 @@ footer p {
     grid-row: auto;
     grid-template-columns: 1fr;
     gap: 10px;
+    height: auto;
   }
   
   .widget {
-    padding: 12px;
+    padding: 14px;
   }
   
   .time-display,
   .date-display,
   .weather-display {
-    font-size: 20px;
+    font-size: 22px;
   }
   
   .mini-calendar-widget {
@@ -870,8 +873,8 @@ footer p {
   }
   
   .calendar-day {
-    font-size: 14px;
-    min-height: 36px;
+    font-size: 15px;
+    min-height: 40px;
   }
 }
 
@@ -895,11 +898,12 @@ footer p {
     grid-template-rows: auto;
     gap: 8px;
     padding: 8px;
+    overflow-y: auto;
   }
   
   .panel {
     grid-row: auto;
-    min-height: 200px;
+    min-height: 250px;
     padding: 8px;
   }
   
@@ -912,30 +916,31 @@ footer p {
     grid-row: auto;
     grid-template-columns: 1fr;
     gap: 8px;
+    height: auto;
   }
   
   .widget {
-    padding: 10px;
+    padding: 12px;
   }
   
   .widget-icon {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
   }
   
   .time-display,
   .date-display,
   .weather-display {
-    font-size: 18px;
+    font-size: 20px;
   }
   
   .calendar-day {
-    font-size: 12px;
-    min-height: 32px;
+    font-size: 13px;
+    min-height: 36px;
   }
   
   .mini-calendar-header h3 {
-    font-size: 14px;
+    font-size: 16px;
   }
 }
 
