@@ -1,279 +1,246 @@
-// ImgBB Image Upload with Gallery Display for CTU Bulletin Board
-console.log('ImgBB Gallery module loading...');
+// ImgBB Image Upload Integration for CTU Bulletin Board
+console.log('ImgBB Upload module loading...');
 
-// API Key configured
+// ⚠️ IMPORTANT: ImgBB API key configured
+// Get free API key at: https://api.imgbb.com/
 const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144';
 
-const uploadBtn = document.getElementById('uploadBtn');
+const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
-const imageGallery = document.getElementById('imageGallery');
+const uploadList = document.getElementById('uploadList');
 const uploadStatus = document.getElementById('uploadStatus');
-const galleryCount = document.getElementById('galleryCount');
+const uploadCount = document.getElementById('uploadCount');
 
-let uploadedImages = []; // Store uploaded images
+let selectedFiles = [];
+let uploadedImages = []; // Track uploaded images with URLs
 
-// Load saved images from localStorage
-function loadSavedImages() {
-  try {
-    const saved = localStorage.getItem('ctu_gallery_images');
-    if (saved) {
-      uploadedImages = JSON.parse(saved);
-      renderGallery();
-      updateCount();
-    }
-  } catch (error) {
-    console.error('Error loading saved images:', error);
-  }
-}
-
-// Save images to localStorage
-function saveImages() {
-  try {
-    localStorage.setItem('ctu_gallery_images', JSON.stringify(uploadedImages));
-  } catch (error) {
-    console.error('Error saving images:', error);
-  }
-}
-
-// Initialize
-if (uploadBtn && fileInput) {
-  // Click upload button to select files
-  uploadBtn.addEventListener('click', () => {
+// Initialize upload area
+if (uploadArea && fileInput) {
+  
+  // Click to upload
+  uploadArea.addEventListener('click', () => {
     fileInput.click();
   });
 
   // File input change
-  fileInput.addEventListener('change', async (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      await uploadFiles(files);
-    }
-    fileInput.value = ''; // Reset input
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+
+  // Drag and drop events
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    handleFiles(e.dataTransfer.files);
   });
 }
 
-// Upload files
-async function uploadFiles(files) {
-  for (const file of files) {
-    // Validate file
+// Handle selected files
+function handleFiles(files) {
+  const fileArray = Array.from(files);
+  
+  fileArray.forEach(file => {
+    // Validate file type (images only)
     if (!file.type.startsWith('image/')) {
-      showStatus(`${file.name} is not an image`, 0, 'error');
-      continue;
+      showStatus(`${file.name} is not an image file`, 0, 'error');
+      return;
     }
-
+    
+    // Validate file size (max 10MB for ImgBB free tier)
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      showStatus(`${file.name} is too large (max 10MB)`, 0, 'error');
-      continue;
+      showStatus(`${file.name} is too large. Max 10MB`, 0, 'error');
+      return;
     }
-
-    // Show uploading state
-    showUploadingItem();
-
-    try {
-      // Upload to ImgBB
-      const imageData = await uploadToImgBB(file);
-      
-      // Add to gallery
-      uploadedImages.unshift(imageData); // Add to beginning
-      saveImages();
-      renderGallery();
-      updateCount();
-
-      showStatus(`${file.name} uploaded successfully!`, 100, 'success');
-      console.log('✅ Image uploaded:', imageData.url);
-
-    } catch (error) {
-      console.error('Upload error:', error);
-      showStatus(`Failed to upload ${file.name}`, 0, 'error');
+    
+    // Check if file already added
+    if (!selectedFiles.find(f => f.name === file.name)) {
+      selectedFiles.push(file);
+      addFileToList(file);
     }
-
-    // Remove uploading indicator
-    removeUploadingItem();
-  }
-}
-
-// Upload to ImgBB
-async function uploadToImgBB(file) {
-  // Convert to base64
-  const base64 = await fileToBase64(file);
-  const base64Data = base64.split(',')[1];
-
-  // Create form data
-  const formData = new FormData();
-  formData.append('image', base64Data);
-  formData.append('name', file.name.replace(/\.[^/.]+$/, ""));
-
-  // Upload
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-    method: 'POST',
-    body: formData
   });
-
-  if (!response.ok) {
-    throw new Error(`Upload failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-
-  if (!data.success) {
-    throw new Error('Upload failed');
-  }
-
-  // Return image data
-  return {
-    id: data.data.id,
-    name: file.name,
-    url: data.data.url,
-    displayUrl: data.data.display_url,
-    deleteUrl: data.data.delete_url,
-    thumb: data.data.thumb.url,
-    size: file.size,
-    uploadedAt: new Date().toISOString()
-  };
+  
+  updateCount();
 }
 
-// Render gallery
-function renderGallery() {
-  if (!imageGallery) return;
-
-  // Clear gallery
-  imageGallery.innerHTML = '';
-
-  if (uploadedImages.length === 0) {
-    // Show empty state
-    imageGallery.innerHTML = `
-      <div class="gallery-empty">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <path d="M6 36L16.172 25.828C17.734 24.266 20.266 24.266 21.828 25.828L32 36M28 30L31.172 26.828C32.734 25.266 35.266 25.266 36.828 26.828L42 32M28 16H28.02M10 42H38C39.0609 42 40.0783 41.5786 40.8284 40.8284C41.5786 40.0783 42 39.0609 42 38V10C42 8.93913 41.5786 7.92172 40.8284 7.17157C40.0783 6.42143 39.0609 6 38 6H10C8.93913 6 7.92172 6.42143 7.17157 7.17157C6.42143 7.92172 6 8.93913 6 10V38C6 39.0609 6.42143 40.0783 7.17157 40.8284C7.92172 41.5786 8.93913 42 10 42Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <p>No images yet</p>
-        <p class="empty-hint">Click + to upload</p>
-      </div>
-    `;
-    return;
-  }
-
-  // Render images
-  uploadedImages.forEach((image, index) => {
-    const item = createGalleryItem(image, index);
-    imageGallery.appendChild(item);
-  });
-}
-
-// Create gallery item
-function createGalleryItem(image, index) {
+// Add file to upload list
+function addFileToList(file) {
   const item = document.createElement('div');
-  item.className = 'gallery-item';
+  item.className = 'upload-item';
+  item.dataset.fileName = file.name;
+  
+  const icon = getImageIcon();
+  const size = formatFileSize(file.size);
   
   item.innerHTML = `
-    <img src="${image.thumb || image.url}" alt="${image.name}" loading="lazy">
-    <div class="gallery-item-overlay">
-      <div class="gallery-item-name">${image.name}</div>
-      <div class="gallery-item-actions">
-        <button class="gallery-action-btn copy-btn" data-index="${index}" title="Copy URL">
-          <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-            <rect x="3" y="3" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
-            <path d="M5 3V2C5 1.44772 5.44772 1 6 1H12C12.5523 1 13 1.44772 13 2V8C13 8.55228 12.5523 9 12 9H11" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          Copy
-        </button>
-        <button class="gallery-action-btn view-btn" data-index="${index}" title="View full image">
-          <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-            <path d="M1 7C1 7 3 2 7 2C11 2 13 7 13 7C13 7 11 12 7 12C3 12 1 7 1 7Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="7" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/>
-          </svg>
-          View
-        </button>
-        <button class="gallery-action-btn delete-btn" data-index="${index}" title="Delete image">
-          <svg width="10" height="10" viewBox="0 0 14 14" fill="none">
-            <path d="M10.5 3.5L3.5 10.5M3.5 3.5L10.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          Del
-        </button>
-      </div>
+    <div class="upload-item-icon">
+      ${icon}
     </div>
+    <div class="upload-item-info">
+      <div class="upload-item-name">${file.name}</div>
+      <div class="upload-item-size">${size}</div>
+      <div class="upload-item-status">Ready to upload</div>
+    </div>
+    <button class="upload-item-action" data-file="${file.name}" title="Upload to ImgBB">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 2L7 12M2 7L12 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
   `;
-
-  // Add event listeners
-  item.querySelector('.copy-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    copyURL(index);
-  });
-
-  item.querySelector('.view-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    viewImage(index);
-  });
-
-  item.querySelector('.delete-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    deleteImage(index);
-  });
-
-  return item;
-}
-
-// Show uploading item
-function showUploadingItem() {
-  if (!imageGallery) return;
-
-  // Remove empty state if exists
-  const empty = imageGallery.querySelector('.gallery-empty');
-  if (empty) empty.remove();
-
-  const item = document.createElement('div');
-  item.className = 'gallery-uploading';
-  item.id = 'uploading-indicator';
-  item.innerHTML = '<div class="gallery-uploading-spinner"></div>';
   
-  imageGallery.insertBefore(item, imageGallery.firstChild);
-}
-
-// Remove uploading item
-function removeUploadingItem() {
-  const item = document.getElementById('uploading-indicator');
-  if (item) item.remove();
-}
-
-// Copy URL
-function copyURL(index) {
-  const image = uploadedImages[index];
-  if (!image) return;
-
-  copyToClipboard(image.url);
-  showStatus('Image URL copied! Paste in announcement', 100, 'success');
+  // Upload button click handler
+  const actionBtn = item.querySelector('.upload-item-action');
+  actionBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    
+    // Check API key
+    if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
+      showStatus('Please add your ImgBB API key in upload.js', 0, 'error');
+      alert('Setup Required:\n\n1. Get free API key at: https://api.imgbb.com\n2. Open upload.js\n3. Replace YOUR_IMGBB_API_KEY_HERE with your key');
+      return;
+    }
+    
+    await uploadToImgBB(file, item);
+  });
   
-  console.log('📋 URL copied:', image.url);
-  console.log('📝 Paste this in your announcement imageUrl field');
+  uploadList.appendChild(item);
 }
 
-// View image
-function viewImage(index) {
-  const image = uploadedImages[index];
-  if (!image) return;
-
-  window.open(image.url, '_blank');
-}
-
-// Delete image
-function deleteImage(index) {
-  const image = uploadedImages[index];
-  if (!image) return;
-
-  if (confirm(`Delete "${image.name}"?`)) {
-    uploadedImages.splice(index, 1);
-    saveImages();
-    renderGallery();
-    updateCount();
-    showStatus('Image deleted', 100, 'success');
-  }
-}
-
-// Update count
-function updateCount() {
-  if (galleryCount) {
-    galleryCount.textContent = uploadedImages.length;
+// Upload image to ImgBB
+async function uploadToImgBB(file, itemElement) {
+  const actionBtn = itemElement.querySelector('.upload-item-action');
+  const statusEl = itemElement.querySelector('.upload-item-status');
+  
+  try {
+    // Disable button during upload
+    actionBtn.disabled = true;
+    actionBtn.innerHTML = `<div class="mini-spinner"></div>`;
+    
+    statusEl.textContent = 'Uploading...';
+    statusEl.style.color = 'var(--accent)';
+    
+    // Convert image to base64
+    const base64 = await fileToBase64(file);
+    
+    // Remove data:image/...;base64, prefix
+    const base64Data = base64.split(',')[1];
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append('image', base64Data);
+    formData.append('name', file.name.replace(/\.[^/.]+$/, "")); // Remove extension
+    
+    // Upload to ImgBB
+    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: 'POST',
+      body: formData
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Get image URL
+      const imageUrl = data.data.url;
+      const displayUrl = data.data.display_url;
+      const deleteUrl = data.data.delete_url;
+      
+      console.log('✅ Image uploaded successfully!');
+      console.log('📸 Image URL:', imageUrl);
+      console.log('🔗 Display URL:', displayUrl);
+      console.log('🗑️ Delete URL:', deleteUrl);
+      
+      // Save uploaded image info
+      const imageInfo = {
+        name: file.name,
+        url: imageUrl,
+        displayUrl: displayUrl,
+        deleteUrl: deleteUrl,
+        size: file.size,
+        uploadedAt: new Date().toISOString()
+      };
+      
+      uploadedImages.push(imageInfo);
+      
+      // Update UI to show success
+      statusEl.innerHTML = `✓ Uploaded! <a href="${imageUrl}" target="_blank" style="color: var(--accent); text-decoration: underline;">View</a>`;
+      statusEl.style.color = 'var(--success)';
+      
+      // Change button to copy URL
+      actionBtn.disabled = false;
+      actionBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="3" y="3" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M5 3V2C5 1.44772 5.44772 1 6 1H12C12.5523 1 13 1.44772 13 2V8C13 8.55228 12.5523 9 12 9H11" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      `;
+      actionBtn.title = 'Copy image URL';
+      actionBtn.style.background = 'rgba(16, 185, 129, 0.1)';
+      actionBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      
+      // Change action to copy URL
+      actionBtn.onclick = (e) => {
+        e.stopPropagation();
+        copyToClipboard(imageUrl);
+        showStatus(`URL copied! Paste it in your announcement`, 100, 'success');
+        
+        // Visual feedback
+        actionBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M12 4L5.5 10.5L2 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        setTimeout(() => {
+          actionBtn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="3" y="3" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 3V2C5 1.44772 5.44772 1 6 1H12C12.5523 1 13 1.44772 13 2V8C13 8.55228 12.5523 9 12 9H11" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          `;
+        }, 1500);
+      };
+      
+      showStatus(`${file.name} uploaded successfully!`, 100, 'success');
+      
+      // Show instructions
+      console.log('\n📋 HOW TO USE THIS IMAGE:');
+      console.log('1. Copy this URL:', imageUrl);
+      console.log('2. Go to Admin Dashboard');
+      console.log('3. Create/Edit announcement');
+      console.log('4. Paste URL in imageUrl field');
+      console.log('5. Save - Image will appear on bulletin board!\n');
+      
+    } else {
+      throw new Error('Upload failed - Invalid response');
+    }
+    
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    
+    statusEl.textContent = 'Upload failed!';
+    statusEl.style.color = '#ef4444';
+    
+    // Restore upload button
+    actionBtn.disabled = false;
+    actionBtn.innerHTML = `
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 2L7 12M2 7L12 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    `;
+    
+    showStatus(`Failed to upload ${file.name}. Check API key.`, 0, 'error');
   }
 }
 
@@ -287,12 +254,13 @@ function fileToBase64(file) {
   });
 }
 
-// Copy to clipboard
+// Copy text to clipboard
 function copyToClipboard(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(() => {
-      console.log('✅ Copied to clipboard');
+      console.log('✅ URL copied to clipboard:', text);
     }).catch(err => {
+      console.error('Copy failed:', err);
       fallbackCopy(text);
     });
   } else {
@@ -300,7 +268,7 @@ function copyToClipboard(text) {
   }
 }
 
-// Fallback copy
+// Fallback copy method
 function fallbackCopy(text) {
   const textarea = document.createElement('textarea');
   textarea.value = text;
@@ -310,21 +278,56 @@ function fallbackCopy(text) {
   textarea.select();
   try {
     document.execCommand('copy');
-    console.log('✅ Copied (fallback)');
+    console.log('✅ URL copied to clipboard (fallback)');
   } catch (err) {
-    alert('Please copy this URL:\n\n' + text);
+    console.error('Copy failed:', err);
+    alert('Please copy this URL manually:\n\n' + text);
   }
   document.body.removeChild(textarea);
 }
 
-// Show status
+// Remove file from selection
+function removeFile(fileName) {
+  selectedFiles = selectedFiles.filter(f => f.name !== fileName);
+  updateCount();
+}
+
+// Update count badge
+function updateCount() {
+  if (uploadCount) {
+    uploadCount.textContent = selectedFiles.length;
+  }
+}
+
+// Get image icon
+function getImageIcon() {
+  return `
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <circle cx="6.5" cy="6.5" r="1.5" fill="currentColor"/>
+      <path d="M14 11L11 8L7 12L5 10L2 13V14C2 15.1046 2.89543 16 4 16H14C15.1046 16 16 15.1046 16 14V11H14Z" fill="currentColor"/>
+    </svg>
+  `;
+}
+
+// Format file size
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// Show status message
 function showStatus(message, progress = 0, type = 'info') {
   if (!uploadStatus) return;
-
+  
   uploadStatus.classList.remove('hidden');
   const statusMsg = uploadStatus.querySelector('.status-message');
   statusMsg.textContent = message;
-
+  
+  // Set color based on type
   if (type === 'error') {
     statusMsg.style.color = '#ef4444';
   } else if (type === 'success') {
@@ -332,26 +335,64 @@ function showStatus(message, progress = 0, type = 'info') {
   } else {
     statusMsg.style.color = 'var(--text-secondary)';
   }
-
+  
   const progressBar = uploadStatus.querySelector('.progress-bar');
   if (progressBar) {
     progressBar.style.width = progress + '%';
   }
-
+  
+  // Auto-hide after 5 seconds for success/error
   if (type === 'error' || type === 'success') {
     setTimeout(() => {
-      uploadStatus.classList.add('hidden');
-    }, 3000);
+      hideStatus();
+    }, 5000);
   }
 }
 
-// Initialize on load
-loadSavedImages();
+// Hide status message
+function hideStatus() {
+  if (uploadStatus) {
+    uploadStatus.classList.add('hidden');
+  }
+}
 
-console.log('✅ ImgBB Gallery loaded!');
-console.log('📸 Click + button to upload images');
-console.log('🖼️ Images will appear in the gallery');
-console.log('📋 Click Copy to get image URLs for announcements');
+// Get all uploaded image URLs
+function getUploadedURLs() {
+  return uploadedImages.map(img => ({
+    name: img.name,
+    url: img.url,
+    displayUrl: img.displayUrl
+  }));
+}
+
+// Log uploaded images
+function logUploadedImages() {
+  if (uploadedImages.length === 0) {
+    console.log('No images uploaded yet');
+    return;
+  }
+  
+  console.log('\n📸 UPLOADED IMAGES:');
+  uploadedImages.forEach((img, index) => {
+    console.log(`\n${index + 1}. ${img.name}`);
+    console.log(`   URL: ${img.url}`);
+    console.log(`   Size: ${formatFileSize(img.size)}`);
+  });
+  console.log('\n');
+}
+
+console.log('✅ ImgBB Upload module loaded!');
+console.log('📸 Drag & drop images or click to browse');
+console.log('🌐 Images will be uploaded to ImgBB (free unlimited hosting)');
+console.log('📋 After upload, copy the URL to use in your announcements');
+
+// Check API key on load
+if (IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY_HERE') {
+  console.warn('\n⚠️  SETUP REQUIRED:');
+  console.warn('1. Get free API key: https://api.imgbb.com');
+  console.warn('2. Open display/upload.js');
+  console.warn('3. Replace YOUR_IMGBB_API_KEY_HERE with your key\n');
+}
 
 // Export functions
-export { uploadedImages, renderGallery };
+export { getUploadedURLs, logUploadedImages, uploadedImages };
