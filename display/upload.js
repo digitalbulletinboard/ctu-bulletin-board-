@@ -105,7 +105,7 @@ async function uploadToImgBB(file) {
   formData.append('name', file.name.replace(/\.[^/.]+$/, ""));
 
   // Upload
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${b99af5a6ee167476243614632f46f144}`, {
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
     method: 'POST',
     body: formData
   });
