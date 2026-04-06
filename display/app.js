@@ -138,7 +138,19 @@ window.closeFullscreen = function() {
     document.removeEventListener('keydown', handleEscKey);
   }
 }
+// =======================
+// FIX IMAGE URL (IMPORTANT)
+// =======================
+function cleanImageUrl(url) {
+  if (!url) return '';
 
+  // Fix ImgBB viewer links → direct image links
+  if (url.includes('ibb.co') && !url.includes('i.ibb.co')) {
+    return url.replace('https://ibb.co/', 'https://i.ibb.co/');
+  }
+
+  return url;
+}
 // =======================
 // RENDER FUNCTIONS
 // =======================
