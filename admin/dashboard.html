@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Bulletin Board Admin - Dashboard</title>
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="bg-animation">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div>
+      <h1>Admin Dashboard</h1>
+      <p class="sub">Manage Announcements & Events</p>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="link" id="openDisplayBtn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Open Display
+      </button>
+      <button type="button" id="logoutBtn" class="danger">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M6 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M11 11L14 8L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="grid-dashboard">
+
+    <!-- CREATE / EDIT FORM -->
+    <section class="card panel">
+      <h2 id="formTitle">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <path d="M10 5V15M5 10H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        Create Content
+      </h2>
+
+      <form id="contentForm">
+        <div class="form-group">
+          <label for="type">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="3" y="3" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M6 6H10M6 9H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Content Type
+          </label>
+          <select id="type" required>
+            <option value="announcements">Announcements</option>
+            <option value="events">Events & Notices</option>
+            <option value="academicCalendar">Academic Calendar</option>
+            <option value="images">Image Gallery</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M2 4H14M2 8H14M2 12H10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Title
+          </label>
+          <input type="text" id="title" placeholder="Enter title..." required />
+        </div>
+
+        <div class="form-group" id="contentGroup">
+          <label for="content">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 5H11M5 8H11M5 11H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Content
+          </label>
+          <textarea id="content" rows="4" placeholder="Enter details..." required></textarea>
+        </div>
+
+        <!-- IMAGE UPLOAD SECTION -->
+        <div class="form-group">
+          <label for="imageUpload">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="6" cy="6" r="1.5" fill="currentColor"/>
+              <path d="M12 10L9 7L5 11L3 9L2 10V12C2 13.1046 2.89543 14 4 14H12C13.1046 14 14 13.1046 14 12V10H12Z" fill="currentColor"/>
+            </svg>
+            <span id="imageLabel">Image (Optional)</span>
+          </label>
+          
+          <div class="image-upload-container">
+            <!-- Upload Area -->
+            <div class="image-upload-area" id="imageUploadArea">
+              <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <path d="M28 20V25.3333C28 26.0406 27.719 26.7189 27.219 27.219C26.7189 27.719 26.0406 28 25.3333 28H6.66667C5.95942 28 5.28115 27.719 4.78105 27.219C4.28095 26.7189 4 26.0406 4 25.3333V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22.6667 10.6667L16 4L9.33334 10.6667" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M16 4V20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <p class="upload-text">Click to upload image</p>
+              <p class="upload-hint">PNG, JPG, GIF (max 10MB)</p>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="image-preview hidden" id="imagePreview">
+              <img id="previewImg" src="" alt="Preview">
+              <div class="image-preview-overlay">
+                <div class="image-preview-info">
+                  <span id="imageName"></span>
+                  <span id="imageSize"></span>
+                </div>
+                <div class="image-preview-actions">
+                  <button type="button" class="btn-icon" id="removeImageBtn" title="Remove image">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Upload Progress -->
+            <div class="upload-progress hidden" id="uploadProgress">
+              <div class="progress-info">
+                <span id="progressText">Uploading...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+              </div>
+            </div>
+
+            <!-- Image URL Display -->
+            <div class="image-url-display hidden" id="imageUrlDisplay">
+              <label>Image URL:</label>
+              <div class="url-input-group">
+                <input type="text" id="imageUrl" readonly>
+                <button type="button" class="btn-icon" id="copyUrlBtn" title="Copy URL">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <rect x="4" y="4" width="8" height="8" rx="1" stroke="currentColor" stroke-width="1.5"/>
+                    <path d="M6 4V3C6 2.44772 6.44772 2 7 2H13C13.5523 2 14 2.44772 14 3V9C14 9.55228 13.5523 10 13 10H12" stroke="currentColor" stroke-width="1.5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" id="datesGroup">
+          <label for="startDate">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 1V3M11 1V3M2 6H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            Start Date & Time
+          </label>
+          <input type="datetime-local" id="startDate" required />
+        </div>
+
+        <div class="form-group" id="endDateGroup">
+          <label for="endDate">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M5 1V3M11 1V3M2 6H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="8" cy="10" r="2" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+            End Date & Time
+          </label>
+          <input type="datetime-local" id="endDate" required />
+        </div>
+
+        <div class="row">
+          <button type="submit" id="saveBtn" class="btn-primary">
+            <span>Save</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M12 6L6.5 11.5L4 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button type="button" id="cancelEditBtn" class="ghost hidden">Cancel</button>
+        </div>
+
+        <p id="formMsg" class="msg"></p>
+      </form>
+    </section>
+
+    <!-- ANNOUNCEMENTS LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <path d="M10 4C10 4 7 4 7 7C7 10 10 10 10 13V16M10 16H8M10 16H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Announcements
+      </h2>
+      <div id="annList" class="list"></div>
+    </section>
+
+    <!-- EVENTS LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 2V4M13 2V4M3 8H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="7" cy="12" r="1" fill="currentColor"/>
+          <circle cx="10" cy="12" r="1" fill="currentColor"/>
+          <circle cx="13" cy="12" r="1" fill="currentColor"/>
+        </svg>
+        Events & Notices
+      </h2>
+      <div id="eventList" class="list"></div>
+    </section>
+
+    <!-- ACADEMIC CALENDAR LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 2V4M13 2V4M3 8H17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Academic Calendar
+      </h2>
+      <div id="calendarList" class="list"></div>
+    </section>
+
+    <!-- IMAGE GALLERY LIST -->
+    <section class="card panel">
+      <h2>
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="display: inline-block; vertical-align: middle; margin-right: 8px;">
+          <rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
+          <path d="M17 13L13 9L8 14L5 11L3 13V15C3 16.1046 3.89543 17 5 17H15C16.1046 17 17 16.1046 17 15V13Z" fill="currentColor"/>
+        </svg>
+        Image Gallery
+      </h2>
+      <div id="imageList" class="list image-grid"></div>
+    </section>
+
+  </main>
+
+  <script type="module" src="dashboard.js"></script>
+</body>
+</html>
