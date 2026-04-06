@@ -2,7 +2,7 @@
 console.log('ImgBB Gallery module loading...');
 
 // API Key configured
-const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144';
+const IMGBB_API_KEY = '34daf6c73a7b54ebde6cd462794ae26b';
 
 const uploadBtn = document.getElementById('uploadBtn');
 const fileInput = document.getElementById('fileInput');
