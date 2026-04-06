@@ -176,10 +176,10 @@ function renderItems(container, data, countEl, isImageGallery = false) {
       div.className = "gallery-image-card";
       div.innerHTML = `
         <div class="gallery-image-wrapper">
-          <img src="${item.imageUrl}" 
-               alt="${item.title}" 
-               loading="lazy" 
-               onerror="this.parentElement.parentElement.style.display='none'">
+          <img src="${cleanImageUrl(item.imageUrl)}" 
+     alt="${item.title}" 
+     loading="lazy"
+     onerror="this.parentElement.parentElement.style.display='none'">
         </div>
         <div class="gallery-image-title">${item.title}</div>
       `;
