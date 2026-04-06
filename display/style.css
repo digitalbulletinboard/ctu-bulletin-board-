@@ -550,35 +550,31 @@ header {
 
 /* --- FIXED MINI CALENDAR WIDGET --- */
 .mini-calendar-widget {
-  padding: 15px; 
+  padding: 8px 12px; 
   grid-column: span 2;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 1px solid var(--card-border);
   overflow: hidden;
+  height: 100%;
 }
 
 .mini-calendar-header {
-  margin-bottom: 12px;
-  padding-bottom: 8px;
+  margin-bottom: 4px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .mini-calendar-header h3 {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--text-primary);
   margin: 0;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
+/* We change this to a flex container to hold the headers and days separately */
 .calendar-grid {
   display: flex;
   flex-direction: column;
@@ -589,20 +585,21 @@ header {
 .calendar-day-header {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
-  padding-bottom: 8px;
+  padding: 4px 0;
+  text-transform: uppercase;
 }
 
 .calendar-days {
   flex: 1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  /* Forces rows to fill the height but stay at least 35px tall */
-  grid-auto-rows: minmax(35px, 1fr); 
-  gap: 6px;
+  /* This is the secret: it forces rows to share height equally */
+  grid-auto-rows: 1fr; 
+  gap: 2px;
   min-height: 0;
 }
 
@@ -610,33 +607,23 @@ header {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-secondary);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03); /* Gives the 'box' look */
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
   transition: all 0.2s ease;
-}
-
-.calendar-day:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: var(--primary);
-  color: var(--text-primary);
-  transform: translateY(-2px);
+  /* Removed aspect-ratio: 1 which caused the zoom/overflow */
 }
 
 .calendar-day.today {
   background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
-  font-weight: 800;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 .calendar-day.empty {
-  background: transparent;
-  border: none;
+  opacity: 0;
 }
 
 .status-widget {
