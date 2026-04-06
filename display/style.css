@@ -167,7 +167,6 @@ header {
   transform: translateY(-2px);
 }
 
-/* 65% CONTENT, 35% WIDGETS LAYOUT */
 .four-column-layout {
   position: relative;
   z-index: 1;
@@ -365,7 +364,6 @@ header {
   margin: 0;
 }
 
-/* FULL-WIDTH IMAGE GALLERY */
 .image-gallery-grid {
   display: flex;
   flex-direction: column;
@@ -449,10 +447,9 @@ header {
   font-weight: 700;
   color: white;
   text-align: center;
-  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
+  background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0. 70%, transparent 100%);
 }
 
-/* 35% WIDGETS - LARGER SIZE */
 .sidebar {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -548,16 +545,20 @@ header {
   font-weight: 500;
 }
 
-/* FULL CALENDAR WIDGET - 35% SPACE */
+/* ─── FIXED: Mini Calendar Widget ─── */
 .mini-calendar-widget {
   padding: 12px;
   grid-column: span 2;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .mini-calendar-header {
-  margin-bottom: 10px;
-  padding-bottom: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .mini-calendar-header h3 {
@@ -570,9 +571,11 @@ header {
 }
 
 .calendar-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  gap: 2px;
 }
 
 .calendar-day-header {
@@ -580,28 +583,26 @@ header {
   font-weight: 700;
   color: var(--text-muted);
   text-align: center;
-  padding: 6px 0;
+  padding: 4px 0;
   text-transform: uppercase;
 }
 
 .calendar-days {
   grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
+  display: contents;
 }
 
 .calendar-day {
-  aspect-ratio: 1;
+  height: 28px;
+  max-height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--text-secondary);
   border-radius: 6px;
   transition: all 0.2s ease;
-  min-height: 32px;
 }
 
 .calendar-day.today {
@@ -614,6 +615,7 @@ header {
 .calendar-day.empty {
   opacity: 0;
 }
+/* ─── END FIX ─── */
 
 .status-widget {
   padding: 14px;
@@ -659,7 +661,6 @@ footer p {
   color: var(--text-muted);
 }
 
-/* FULLSCREEN IMAGE VIEWER */
 #fullscreen-overlay {
   position: fixed;
   top: 0;
@@ -726,34 +727,18 @@ footer p {
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
 }
 
 @media (max-width: 1400px) {
@@ -767,3 +752,4 @@ footer p {
     grid-template-columns: 1fr;
   }
 }
+Write to Jay Luminario
