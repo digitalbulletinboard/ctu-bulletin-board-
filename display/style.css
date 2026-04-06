@@ -457,9 +457,9 @@ header {
   grid-column: 1 / -1;
   grid-row: 2;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  height: 100%;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  height: 70%;
 }
 
 .widget {
