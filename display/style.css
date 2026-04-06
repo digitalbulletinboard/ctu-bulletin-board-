@@ -604,7 +604,7 @@ header {
   min-height: 32px;
   flex-wrap: wrap;
   align-content: flex-start;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .calendar-day.today {
