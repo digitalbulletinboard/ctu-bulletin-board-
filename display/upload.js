@@ -2,7 +2,7 @@
 console.log('ImgBB Gallery module loading...');
 
 // API Key configured
-const IMGBB_API_KEY = '34daf6c73a7b54ebde6cd462794ae26b';
+const IMGBB_API_KEY = 'b99af5a6ee167476243614632f46f144';
 
 const uploadBtn = document.getElementById('uploadBtn');
 const fileInput = document.getElementById('fileInput');
@@ -105,7 +105,7 @@ async function uploadToImgBB(file) {
   formData.append('name', file.name.replace(/\.[^/.]+$/, ""));
 
   // Upload
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${b99af5a6ee167476243614632f46f144}`, {
     method: 'POST',
     body: formData
   });
