@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Display</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Fullscreen Slideshow -->
+  <div id="slideshow">
+    <div id="progress-bar" class="progress-bar"></div>
+  </div>
+
+  <!-- Bottom Info Bar (Date/Time/Weather/Calendar) -->
+  <div id="info-bar">
+    <div class="info-section">
+      <div id="date-time" class="info-item"></div>
+    </div>
+    <div class="info-section">
+      <div id="weather" class="info-item">
+        <span id="weather-icon">🌤️</span>
+        <span id="weather-temp">--°C</span>
+        <span id="weather-desc">Loading...</span>
+      </div>
+    </div>
+    <div class="info-section">
+      <div id="calendar" class="info-item">
+        <div id="mini-calendar"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { firebaseConfig, WEATHER_API_KEY } from './firebase-config.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+    import { initSlideshow } from './display.js';
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    initSlideshow(db, WEATHER_API_KEY);
+  </script>
+</body>
+</html>
