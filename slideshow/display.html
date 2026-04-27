@@ -1,573 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bulletin Board Display</title>
-  <link rel="shortcut icon" href="logo.png" type="image/png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulletin Board Display</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root {
-      --bar-h: 88px;
-      --accent: #3b82f6;
-      --accent2: #8b5cf6;
-      --white: #ffffff;
-      --ink: #0f172a;
-      --muted: rgba(255,255,255,0.60);
-    }
+  :root {
+    --accent:     #f0c040;
+    --accent2:    #ffdd77;
+    --dark:       #0d0d0d;
+    --light:      #f5f2eb;
+    --glass:      rgba(255,255,255,0.08);
+    --transition: 0.72s cubic-bezier(0.77, 0, 0.18, 1);
+    --bar-h:      86px;
+  }
 
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      background: #0f172a;
-      font-family: 'DM Sans', sans-serif;
-      cursor: none;
-    }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--dark);
+    font-family: 'DM Sans', sans-serif;
+  }
 
-    /* Slides container — acts as the sliding TRACK (translateX scrolls it) */
-    #slides-container {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      overflow: hidden;   /* clips slides outside viewport */
-    }
+  /* ── LOADER ── */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--dark);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 18px;
+    transition: opacity 0.6s;
+  }
+  #loader.fade { opacity: 0; pointer-events: none; }
+  .loader-ring {
+    width: 56px; height: 56px;
+    border: 3px solid rgba(240,192,64,0.18);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px; letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.35);
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       LOADING SCREEN
-    ══════════════════════════════════════════════════════════ */
-    #loader {
-      position: fixed; inset: 0; z-index: 9999;
-      background: #0f172a;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center; gap: 20px;
-      transition: opacity 0.7s ease;
-    }
-    #loader.fade { opacity: 0; pointer-events: none; }
+  /* ═══════════════════════════════════════════════════════
+     SLIDER — fullscreen, exact structure from working slider
+  ═══════════════════════════════════════════════════════ */
+  .slider {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    bottom: var(--bar-h);
+    background: #111;
+    cursor: grab;
+    user-select: none;
+    overflow: hidden;
+  }
+  .slider:active { cursor: grabbing; }
 
-    .loader-ring {
-      width: 64px; height: 64px;
-      border: 3px solid rgba(59,130,246,0.2);
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+  /* Grain texture */
+  .slider::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 5;
+    opacity: 0.03; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
 
-    .loader-text {
-      font-family: 'DM Serif Display', serif;
-      font-size: 22px; color: rgba(255,255,255,0.5);
-      letter-spacing: 0.04em;
-    }
+  /* TRACK — flex row, slides sit side by side */
+  .slides-track {
+    display: flex;
+    height: 100%;
+    will-change: transform;
+    transition: transform var(--transition);
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       SLIDER STAGE
-    ══════════════════════════════════════════════════════════ */
-    #stage {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      bottom: var(--bar-h);
-      background: #0f172a;
-      overflow: hidden;
-    }
+  /* SLIDE */
+  .slide {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
 
-    /* ── SLIDES ── */
-    .slide {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0;
-      transform: scale(1.04);
-      transition: opacity 0.9s cubic-bezier(.4,0,.2,1),
-                  transform 0.9s cubic-bezier(.4,0,.2,1);
-      pointer-events: none;
-      z-index: 1;
-    }
-    .slide.active {
-      opacity: 1; transform: scale(1);
-      pointer-events: auto; z-index: 2;
-    }
-    #slides-container .slide { pointer-events: none; }
-    #slides-container .slide.active { pointer-events: auto; }
-    /* .exit class removed — slides deactivate cleanly via removing .active */
+  /* Gradient bg for text slides */
+  .slide-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    transform: scale(1.06);
+    transition: transform var(--transition);
+  }
+  .slide.active .slide-bg { transform: scale(1.0); }
 
-    /* TEXT SLIDES */
-    .slide-text {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .theme-blue   { background: linear-gradient(145deg, #0f172a 0%, #1e3a5f 50%, #0c2340 100%); }
-    .theme-purple { background: linear-gradient(145deg, #1a0a2e 0%, #3b1f6a 50%, #160828 100%); }
-    .theme-green  { background: linear-gradient(145deg, #052e16 0%, #14532d 50%, #0a3520 100%); }
-    .theme-amber  { background: linear-gradient(145deg, #1c0f00 0%, #78350f 50%, #3b1c00 100%); }
-    .theme-rose   { background: linear-gradient(145deg, #1f0612 0%, #7f1d4e 50%, #1a0510 100%); }
-    .theme-teal   { background: linear-gradient(145deg, #011f20 0%, #134e4a 50%, #021d1e 100%); }
+  /* Image for image slides */
+  .slide-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+    transform: scale(1.06);
+    transition: transform var(--transition);
+  }
+  .slide.active .slide-img { transform: scale(1.0); }
 
-    /* Geometric accent shape */
-    .slide-text::before {
-      content: '';
-      position: absolute;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
-      top: -200px; right: -100px;
-      pointer-events: none;
-    }
-    .slide-text::after {
-      content: '';
-      position: absolute;
-      width: 400px; height: 400px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
-      bottom: -150px; left: -50px;
-      pointer-events: none;
-    }
+  /* Video */
+  .slide-vid {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%; object-fit: cover;
+  }
 
-    .text-content {
-      position: relative; z-index: 2;
-      text-align: center;
-      padding: 60px 80px;
-      max-width: 1000px;
-      animation: textReveal 0.7s cubic-bezier(.4,0,.2,1) 0.1s both;
-    }
-    @keyframes textReveal {
-      from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+  /* Dark gradient overlay on every slide */
+  .slide-overlay {
+    position: absolute; inset: 0; z-index: 1;
+    background: linear-gradient(
+      135deg,
+      rgba(0,0,0,0.65) 0%,
+      rgba(0,0,0,0.08) 50%,
+      rgba(0,0,0,0.30) 100%
+    );
+  }
 
-    .slide-tag {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 18px; border-radius: 99px;
-      font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
-      text-transform: uppercase; margin-bottom: 28px;
-      border: 1px solid rgba(255,255,255,0.2);
-      backdrop-filter: blur(10px);
-      color: rgba(255,255,255,0.9);
-      background: rgba(255,255,255,0.10);
-    }
-    .slide-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  /* SLIDE CONTENT — bottom left, animates up on active */
+  .slide-content {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 2;
+    padding: clamp(24px, 5%, 60px);
+    transform: translateY(14px);
+    opacity: 0;
+    transition: transform 0.6s 0.15s ease, opacity 0.6s 0.15s ease;
+  }
+  .slide.active .slide-content { transform: translateY(0); opacity: 1; }
 
-    .slide-headline {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(36px, 6.5vw, 88px);
-      color: #ffffff;
-      line-height: 1.08;
-      margin-bottom: 24px;
-      letter-spacing: -0.02em;
-      text-shadow: 0 4px 40px rgba(0,0,0,0.4);
-    }
-    .slide-headline em {
-      font-style: italic;
-      background: linear-gradient(135deg, #93c5fd, #c4b5fd);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+  .slide-tag {
+    display: inline-block;
+    background: var(--accent); color: var(--dark);
+    font-size: 0.7rem; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    padding: 4px 13px; border-radius: 4px; margin-bottom: 10px;
+  }
 
-    .slide-body {
-      font-size: clamp(16px, 2.2vw, 28px);
-      color: rgba(255,255,255,0.72);
-      line-height: 1.7; font-weight: 300;
-      max-width: 720px; margin: 0 auto;
-    }
+  .slide-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2rem, 5.5vw, 5rem);
+    color: #fff; letter-spacing: 0.04em;
+    line-height: 1.05; margin-bottom: 10px;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+  }
 
-    /* decorative line */
-    .slide-divider {
-      width: 60px; height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
-      margin: 22px auto;
-    }
+  .slide-body {
+    font-size: clamp(0.82rem, 1.8vw, 1.1rem);
+    color: rgba(255,255,255,0.72);
+    font-weight: 300; line-height: 1.65; max-width: 560px;
+  }
 
-    /* IMAGE SLIDES */
-    .slide-image { position: absolute; inset: 0; }
-    .slide-image img {
-      width: 100%; height: 100%;
-      object-fit: cover; display: block;
-    }
-    .img-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(
-        to top,
-        rgba(0,0,0,0.75) 0%,
-        rgba(0,0,0,0.20) 40%,
-        rgba(0,0,0,0.05) 100%
-      );
-    }
-    .img-caption {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 32px 52px 36px;
-      display: flex; align-items: flex-end; justify-content: space-between;
-    }
-    .cap-left { max-width: 70%; }
-    .cap-tag {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-      text-transform: uppercase; color: rgba(255,255,255,0.7);
-      margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
-    }
-    .cap-tag::before {
-      content: ''; width: 20px; height: 1px;
-      background: rgba(255,255,255,0.5); display: inline-block;
-    }
-    .cap-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(22px, 4vw, 54px);
-      color: white; line-height: 1.15;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
-    }
+  /* Slide number — top right */
+  .slide-number {
+    position: absolute; top: 22px; right: 22px; z-index: 6;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.88rem; letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.45);
+    opacity: 0; transform: translateY(-8px);
+    transition: opacity 0.4s 0.3s, transform 0.4s 0.3s;
+    pointer-events: none;
+  }
+  .slide.active .slide-number { opacity: 1; transform: translateY(0); }
+  .slide-number strong { color: var(--accent); }
 
-    /* VIDEO SLIDES */
-    .slide-video { position: absolute; inset: 0; }
-    .slide-video video {
-      width: 100%; height: 100%;
-      object-fit: cover; background: #000;
-    }
-    .vid-overlay {
-      position: absolute; inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 50%);
-      pointer-events: none;
-    }
-    .vid-caption {
-      position: absolute; bottom: 32px; left: 52px; right: 52px;
-    }
-    .vid-tag {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-      text-transform: uppercase; color: rgba(255,255,255,0.65);
-      margin-bottom: 6px;
-    }
-    .vid-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(20px, 3.5vw, 46px);
-      color: white; text-shadow: 0 2px 20px rgba(0,0,0,0.5);
-    }
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: absolute; top: 0; left: 0;
+    height: 3px; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 20; pointer-events: none;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 10px rgba(240,192,64,0.55);
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       ARROWS
-    ══════════════════════════════════════════════════════════ */
-    .arrow-btn {
-      position: absolute;
-      top: 50%; transform: translateY(-50%);
-      z-index: 100;
-      width: 52px; height: 52px;
-      background: rgba(255,255,255,0.10);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 16px;
-      color: white; font-size: 18px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.25s cubic-bezier(.4,0,.2,1);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      user-select: none;
-    }
-    .arrow-btn:hover {
-      background: rgba(59,130,246,0.5);
-      border-color: rgba(59,130,246,0.6);
-      transform: translateY(-50%) scale(1.08);
-      box-shadow: 0 8px 32px rgba(59,130,246,0.3);
-    }
-    .arrow-btn:active { transform: translateY(-50%) scale(0.94); }
-    #btn-prev { left: 20px; }
-    #btn-next { right: 20px; }
+  /* ARROWS */
+  .arrow {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 10; width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px);
+    color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, transform 0.2s, border-color 0.2s;
+    pointer-events: all;
+  }
+  .arrow:hover {
+    background: var(--accent); border-color: var(--accent);
+    color: var(--dark); transform: translateY(-50%) scale(1.1);
+  }
+  .arrow:active { transform: translateY(-50%) scale(0.94); }
+  .arrow-prev { left: 20px; }
+  .arrow-next { right: 20px; }
+  .arrow svg { width: 22px; height: 22px; }
 
-    /* Arrow SVG icons */
-    .arrow-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  /* DOTS + PLAY/PAUSE — bottom center of slider */
+  .slider-controls {
+    position: absolute; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex; align-items: center; gap: 14px;
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       PLAY / PAUSE BUTTON
-    ══════════════════════════════════════════════════════════ */
-    #play-pause {
-      position: absolute;
-      top: 18px; right: 80px;
-      z-index: 100;
-      width: 40px; height: 40px;
-      background: rgba(255,255,255,0.10);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.22);
-      border-radius: 12px;
-      color: white;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s;
-    }
-    #play-pause:hover {
-      background: rgba(59,130,246,0.4);
-      border-color: rgba(59,130,246,0.5);
-    }
-    #play-pause svg { width: 16px; height: 16px; fill: white; }
+  .dots { display: flex; align-items: center; gap: 8px; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.25);
+    cursor: pointer; border: none; padding: 0;
+    transition: width 0.35s ease, background 0.3s;
+  }
+  .dot.active {
+    width: 28px; background: var(--accent);
+    box-shadow: 0 0 10px rgba(240,192,64,0.4);
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       SLIDE COUNTER
-    ══════════════════════════════════════════════════════════ */
-    #slide-counter {
-      position: absolute;
-      top: 18px; left: 20px;
-      z-index: 100;
-      font-size: 12px; font-weight: 600;
-      color: rgba(255,255,255,0.6);
-      background: rgba(0,0,0,0.30);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 8px 14px; border-radius: 10px;
-      letter-spacing: 0.05em;
-    }
+  .play-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    backdrop-filter: blur(8px);
+  }
+  .play-btn:hover {
+    background: var(--accent); border-color: var(--accent);
+    color: var(--dark); transform: scale(1.1);
+  }
+  .play-btn svg { width: 15px; height: 15px; }
 
-    /* ══════════════════════════════════════════════════════════
-       DOTS
-    ══════════════════════════════════════════════════════════ */
-    #dots-wrap {
-      position: absolute;
-      bottom: 18px; left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .dot {
-      width: 7px; height: 7px;
-      border-radius: 99px;
-      background: rgba(255,255,255,0.32);
-      border: 1px solid rgba(255,255,255,0.5);
-      cursor: pointer;
-      transition: all 0.35s cubic-bezier(.4,0,.2,1);
-    }
-    .dot:hover { background: rgba(255,255,255,0.6); }
-    .dot.active {
-      background: white;
-      width: 28px;
-      box-shadow: 0 0 12px rgba(255,255,255,0.5);
-    }
+  /* EMPTY STATE */
+  #empty-state {
+    position: absolute; inset: 0; z-index: 8;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 12px;
+  }
+  #empty-state.show { display: flex; }
+  #empty-state .ei { font-size: 54px; }
+  #empty-state p {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px; letter-spacing: 0.1em;
+    color: rgba(255,255,255,0.25);
+  }
+  #empty-state small { font-size: 12px; color: rgba(255,255,255,0.15); }
 
-    /* ══════════════════════════════════════════════════════════
-       PROGRESS BAR
-    ══════════════════════════════════════════════════════════ */
-    #progress-track {
-      position: fixed;
-      bottom: var(--bar-h);
-      left: 0; right: 0;
-      height: 3px;
-      background: rgba(255,255,255,0.10);
-      z-index: 200;
-    }
-    #progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
-      transition: width 0s linear;
-      border-radius: 0 2px 2px 0;
-      box-shadow: 0 0 8px rgba(59,130,246,0.6);
-    }
+  /* ═══════════════════════════════════════════════════════
+     INFO BAR
+  ═══════════════════════════════════════════════════════ */
+  #info-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--bar-h);
+    background: rgba(6,6,10,0.97);
+    border-top: 1px solid rgba(240,192,64,0.10);
+    backdrop-filter: blur(24px);
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto;
+    align-items: center;
+    padding: 0 28px; gap: 20px;
+    z-index: 100;
+  }
 
-    /* ══════════════════════════════════════════════════════════
-       INFO BAR
-    ══════════════════════════════════════════════════════════ */
-    #info-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: var(--bar-h);
-      background: rgba(10,14,28,0.96);
-      backdrop-filter: blur(24px);
-      border-top: 1px solid rgba(255,255,255,0.08);
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto;
-      align-items: center;
-      padding: 0 28px; gap: 20px;
-      z-index: 150;
-    }
+  .bar-left  { display: flex; align-items: center; gap: 18px; }
+  .bar-right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
+  .bar-center { text-align: center; }
 
-    /* Left — date + mini cal */
-    .bar-left { display: flex; align-items: center; gap: 20px; }
+  /* Date */
+  .date-day {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px; color: var(--light);
+  }
+  .date-full { font-size: 11px; color: rgba(255,255,255,0.32); margin-top: 1px; }
 
-    .date-block { line-height: 1.3; }
-    .date-day {
-      font-family: 'DM Serif Display', serif;
-      font-size: 22px; color: white;
-      font-weight: 400;
-    }
-    .date-full { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+  /* Mini calendar */
+  .mini-cal { display: flex; gap: 5px; }
+  .cal-col  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .cal-dn   { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.26); }
+  .cal-dd   { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.38); }
+  .cal-dd.today { background: var(--accent); color: var(--dark); font-weight: 700; box-shadow: 0 0 10px rgba(240,192,64,0.3); }
 
-    .mini-cal { display: flex; gap: 6px; }
-    .cal-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    .cal-dname {
-      font-size: 9px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      color: rgba(255,255,255,0.35);
-    }
-    .cal-dnum {
-      width: 26px; height: 26px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 8px;
-      font-size: 12px; font-weight: 500;
-      color: rgba(255,255,255,0.50);
-    }
-    .cal-dnum.today {
-      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      color: white;
-      box-shadow: 0 2px 8px rgba(59,130,246,0.4);
-    }
+  /* Clock */
+  .clock-time {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px; color: var(--light); line-height: 1;
+  }
+  .clock-sec  { font-size: 18px; color: rgba(255,255,255,0.32); }
+  .clock-ampm { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: rgba(255,255,255,0.30); margin-top: 3px; text-transform: uppercase; }
 
-    /* Center — clock */
-    .bar-center { text-align: center; }
-    .clock-time {
-      font-family: 'DM Serif Display', serif;
-      font-size: 34px; color: white; line-height: 1;
-    }
-    .clock-sec { font-size: 20px; color: rgba(255,255,255,0.4); }
-    .clock-ampm {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
-      color: rgba(255,255,255,0.4); margin-top: 3px;
-      text-transform: uppercase;
-    }
+  /* Weather */
+  .wx-main  { display: flex; align-items: center; gap: 10px; }
+  .wx-icon  { font-size: 32px; line-height: 1; }
+  .wx-temp  { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--light); line-height: 1; }
+  .wx-info  { line-height: 1.5; }
+  .wx-desc  { font-size: 12px; color: rgba(255,255,255,0.62); text-transform: capitalize; }
+  .wx-city  { font-size: 10px; color: rgba(255,255,255,0.26); }
+  .wx-extra { display: flex; flex-direction: column; gap: 3px; }
+  .wx-row   { font-size: 11px; color: rgba(255,255,255,0.32); display: flex; align-items: center; gap: 4px; }
 
-    /* Right — weather */
-    .bar-right { display: flex; align-items: center; justify-content: flex-end; gap: 16px; }
+  /* Admin link */
+  #admin-link {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 15px; border-radius: 9px;
+    background: rgba(240,192,64,0.07);
+    border: 1px solid rgba(240,192,64,0.16);
+    color: rgba(240,192,64,0.65);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-decoration: none; white-space: nowrap;
+    transition: all 0.2s;
+  }
+  #admin-link:hover { background: rgba(240,192,64,0.16); color: var(--accent); border-color: rgba(240,192,64,0.45); }
 
-    .wx-main { display: flex; align-items: center; gap: 12px; }
-    .wx-icon { font-size: 36px; line-height: 1; filter: drop-shadow(0 0 8px rgba(255,255,255,0.2)); }
-    .wx-temp {
-      font-family: 'DM Serif Display', serif;
-      font-size: 28px; color: white; line-height: 1;
-    }
-    .wx-info { line-height: 1.5; }
-    .wx-desc { font-size: 13px; color: rgba(255,255,255,0.7); text-transform: capitalize; }
-    .wx-city { font-size: 10px; color: rgba(255,255,255,0.35); }
-
-    .wx-extra { display: flex; flex-direction: column; gap: 4px; }
-    .wx-row { font-size: 11px; color: rgba(255,255,255,0.4); display: flex; align-items: center; gap: 5px; }
-
-    /* Admin link */
-    #admin-link {
-      display: flex; align-items: center; gap: 6px;
-      padding: 8px 14px; border-radius: 10px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.10);
-      color: rgba(255,255,255,0.5);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 11px; font-weight: 600;
-      letter-spacing: 0.04em;
-      text-decoration: none;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    #admin-link:hover {
-      background: rgba(59,130,246,0.15);
-      border-color: rgba(59,130,246,0.3);
-      color: #93c5fd;
-    }
-
-    /* ══════════════════════════════════════════════════════════
-       EMPTY STATE
-    ══════════════════════════════════════════════════════════ */
-    #empty-state {
-      position: absolute; inset: 0; z-index: 5;
-      display: none;
-      flex-direction: column; align-items: center; justify-content: center;
-      gap: 16px; color: rgba(255,255,255,0.3);
-      font-family: 'DM Serif Display', serif;
-    }
-    #empty-state.show { display: flex; }
-    #empty-state .empty-icon { font-size: 64px; opacity: 0.4; }
-    #empty-state p { font-size: 22px; }
-    #empty-state small { font-family: 'DM Sans', sans-serif; font-size: 13px; }
-
-    /* ══════════════════════════════════════════════════════════
-       SWIPE HINT (fades after first swipe)
-    ══════════════════════════════════════════════════════════ */
-    #swipe-hint {
-      position: absolute;
-      bottom: 56px; left: 50%; transform: translateX(-50%);
-      z-index: 99;
-      font-size: 11px; color: rgba(255,255,255,0.35);
-      letter-spacing: 0.08em;
-      display: flex; align-items: center; gap: 8px;
-      animation: hintPulse 2s ease-in-out 2s 3;
-      opacity: 0;
-    }
-    @keyframes hintPulse {
-      0%,100% { opacity: 0; } 30%,70% { opacity: 1; }
-    }
-    .swipe-icon { font-size: 16px; }
-
-    /* ══════════════════════════════════════════════════════════
-       CUSTOM CURSOR
-    ══════════════════════════════════════════════════════════ */
-    #cursor {
-      position: fixed; z-index: 99999;
-      width: 12px; height: 12px;
-      background: white; border-radius: 50%;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      transition: transform 0.15s ease, width 0.2s, height 0.2s, opacity 0.3s;
-      mix-blend-mode: difference;
-    }
-    #cursor.big { width: 40px; height: 40px; opacity: 0.4; }
-
-    /* No slides yet animations */
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
-    }
-    #empty-state .empty-icon { animation: float 3s ease-in-out infinite; }
-
-  </style>
+  /* Text-slide theme backgrounds */
+  .theme-blue   { background: linear-gradient(145deg,#0a1628,#1a3a6e,#0d2040); }
+  .theme-purple { background: linear-gradient(145deg,#160822,#3d1a6e,#120620); }
+  .theme-green  { background: linear-gradient(145deg,#041410,#0e4028,#061810); }
+  .theme-amber  { background: linear-gradient(145deg,#130a00,#5a2e00,#1a0e00); }
+  .theme-rose   { background: linear-gradient(145deg,#1a0410,#6e1040,#180310); }
+  .theme-teal   { background: linear-gradient(145deg,#021414,#0a4040,#021818); }
+</style>
 </head>
 <body>
-
-<!-- Custom cursor -->
-<div id="cursor"></div>
 
 <!-- Loader -->
 <div id="loader">
   <div class="loader-ring"></div>
-  <div class="loader-text">Loading Bulletin Board…</div>
+  <div class="loader-text">LOADING BULLETIN BOARD…</div>
 </div>
 
-<!-- Stage -->
-<div id="stage">
-  <!-- Slides rendered here -->
+<!-- ═══ SLIDER ══════════════════════════════════════════════════════════ -->
+<div class="slider" id="slider">
 
-  <!-- Slides container — separate from arrow buttons so insertions stay ordered -->
-  <div id="slides-container"></div>
+  <div class="progress-bar" id="progressBar"></div>
 
-  <!-- Navigation arrows -->
-  <button class="arrow-btn" id="btn-prev" title="Previous">
-    <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg>
+  <!-- Slides track — filled dynamically from Firebase -->
+  <div class="slides-track" id="slidesTrack"></div>
+
+  <!-- Empty state shown when no posts -->
+  <div id="empty-state">
+    <div class="ei">📭</div>
+    <p>No Slides Yet</p>
+    <small>Add slides from the admin panel</small>
+  </div>
+
+  <!-- Arrows -->
+  <button class="arrow arrow-prev" id="prevBtn" aria-label="Previous">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
   </button>
-  <button class="arrow-btn" id="btn-next" title="Next">
-    <svg viewBox="0 0 24 24"><polyline points="9,18 15,12 9,6"></polyline></svg>
-  </button>
-
-  <!-- Play/Pause -->
-  <button id="play-pause" title="Play / Pause">
-    <svg id="pp-icon" viewBox="0 0 24 24">
-      <rect x="6" y="4" width="4" height="16"></rect>
-      <rect x="14" y="4" width="4" height="16"></rect>
+  <button class="arrow arrow-next" id="nextBtn" aria-label="Next">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="9 18 15 12 9 6"/>
     </svg>
   </button>
 
-  <!-- Slide counter -->
-  <div id="slide-counter">1 / 1</div>
-
-  <!-- Dots -->
-  <div id="dots-wrap"></div>
-
-  <!-- Swipe hint -->
-  <div id="swipe-hint"><span class="swipe-icon">👆</span> Swipe to navigate</div>
-
-  <!-- Empty state -->
-  <div id="empty-state">
-    <div class="empty-icon">📭</div>
-    <p>No slides yet</p>
-    <small>Add slides from the admin panel</small>
+  <!-- Play/Pause + Dots -->
+  <div class="slider-controls">
+    <button class="play-btn" id="playBtn" aria-label="Pause">
+      <svg id="iconPause" viewBox="0 0 24 24" fill="currentColor">
+        <rect x="6" y="4" width="4" height="16" rx="1"/>
+        <rect x="14" y="4" width="4" height="16" rx="1"/>
+      </svg>
+      <svg id="iconPlay" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+        <polygon points="5,3 19,12 5,21"/>
+      </svg>
+    </button>
+    <div class="dots" id="dots"></div>
   </div>
+
 </div>
 
-<!-- Progress bar -->
-<div id="progress-track"><div id="progress-fill"></div></div>
-
-<!-- Info bar -->
+<!-- ═══ INFO BAR ════════════════════════════════════════════════════════ -->
 <div id="info-bar">
   <div class="bar-left">
-    <div class="date-block">
+    <div>
       <div class="date-day" id="b-day">Monday</div>
       <div class="date-full" id="b-date">April 27, 2026</div>
     </div>
@@ -599,7 +412,7 @@
   </div>
 
   <a href="admin.html" id="admin-link">
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
     Admin
   </a>
 </div>
@@ -608,11 +421,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* ── CONFIG ──────────────────────────────────────────────────────────────── */
-const OWM_KEY  = "f5168c305674a67a705409181a80046d";
-const OWM_CITY = "Cebu City";
-const OWM_UNIT = "metric";
-
+/* ── FIREBASE ────────────────────────────────────────────────────────────── */
 const FB = {
   apiKey:            "AIzaSyBOm8OKOhHd_PCf8FeRkkscffne81MAaFc",
   authDomain:        "digitalbulletinboard-54f06.firebaseapp.com",
@@ -622,42 +431,47 @@ const FB = {
   messagingSenderId: "987342604782",
   appId:             "1:987342604782:web:90f8a7e895e8f8a2b026ff"
 };
-
 const db = getDatabase(initializeApp(FB));
 
-/* ── DOM ─────────────────────────────────────────────────────────────────── */
-const track    = document.getElementById('slides-container'); // acts as the sliding track
-const dotsWrap = document.getElementById('dots-wrap');
-const pFill    = document.getElementById('progress-fill');
-const counter  = document.getElementById('slide-counter');
-const ppBtn    = document.getElementById('play-pause');
-const ppIcon   = document.getElementById('pp-icon');
-const emptyEl  = document.getElementById('empty-state');
-const btnPrev  = document.getElementById('btn-prev');
-const btnNext  = document.getElementById('btn-next');
-const cursorEl = document.getElementById('cursor');
-
-/* ── SLIDER STATE (mirrors the proven working slider) ────────────────────── */
-let posts      = [];
-let current    = 0;
-let isPlaying  = true;
-let autoTimer  = null;
-let progTimer  = null;
-let startTime  = null;
-let loaded     = false;
-let INTERVAL   = 7000;   // overridden per-slide
-const TICK     = 50;     // progress bar tick ms
-
-const PAUSE_SVG = `<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>`;
-const PLAY_SVG  = `<polygon points="5,3 19,12 5,21"></polygon>`;
-
+/* ── WEATHER ─────────────────────────────────────────────────────────────── */
+const OWM_KEY  = "f5168c305674a67a705409181a80046d";
+const OWM_CITY = "Cebu City";
+const OWM_UNIT = "metric";
 const WX_ICONS = {
   '01d':'☀️','01n':'🌙','02d':'⛅','02n':'☁️','03d':'☁️','03n':'☁️',
   '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
   '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'
 };
 
-/* ── FIREBASE ─────────────────────────────────────────────────────────────── */
+/* ── DOM ─────────────────────────────────────────────────────────────────── */
+const track       = document.getElementById('slidesTrack');
+const dotsWrap    = document.getElementById('dots');
+const prevBtn     = document.getElementById('prevBtn');
+const nextBtn     = document.getElementById('nextBtn');
+const playBtn     = document.getElementById('playBtn');
+const iconPause   = document.getElementById('iconPause');
+const iconPlay    = document.getElementById('iconPlay');
+const progressBar = document.getElementById('progressBar');
+const sliderEl    = document.getElementById('slider');
+const emptyEl     = document.getElementById('empty-state');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SLIDER ENGINE — direct port of the proven working slider logic
+   Key insight: slides sit in a flex row; translateX(-N*100%) scrolls to slide N
+═══════════════════════════════════════════════════════════════════════════ */
+let posts      = [];   // data from Firebase
+let slides     = [];   // DOM elements
+let dots       = [];   // dot buttons
+let current    = 0;
+let isPlaying  = true;
+let autoTimer  = null;
+let progTimer  = null;
+let startTime  = null;
+let INTERVAL   = 7000;
+let firstLoad  = true;
+const TICK     = 50;   // ms between progress bar ticks
+
+/* ── Firebase listener ───────────────────────────────────────────────────── */
 onValue(ref(db, 'posts'), snap => {
   const prevKey = posts[current]?._key ?? null;
   posts = [];
@@ -665,12 +479,12 @@ onValue(ref(db, 'posts'), snap => {
 
   rebuild();
 
-  if (!loaded) {
-    loaded = true;
+  if (firstLoad) {
+    firstLoad = false;
     goTo(0);
-    startAuto();
+    if (isPlaying) startAuto();
     const ldr = document.getElementById('loader');
-    if (ldr) { ldr.classList.add('fade'); setTimeout(() => ldr.remove(), 800); }
+    if (ldr) { ldr.classList.add('fade'); setTimeout(() => ldr.remove(), 700); }
   } else {
     stopAuto();
     const ni = posts.findIndex(p => p._key === prevKey);
@@ -680,188 +494,144 @@ onValue(ref(db, 'posts'), snap => {
   }
 });
 
-/* ── BUILD SLIDES ────────────────────────────────────────────────────────── */
+/* ── Build DOM from posts[] ──────────────────────────────────────────────── */
 function rebuild() {
-  track.innerHTML = '';
+  stopAuto();
+  track.innerHTML  = '';
   dotsWrap.innerHTML = '';
+  slides = [];
+  dots   = [];
 
   if (!posts.length) {
     emptyEl.classList.add('show');
-    btnPrev.style.visibility = 'hidden';
-    btnNext.style.visibility = 'hidden';
-    counter.textContent = '0 / 0';
-    stopAuto();
+    prevBtn.style.visibility = 'hidden';
+    nextBtn.style.visibility = 'hidden';
     return;
   }
-
   emptyEl.classList.remove('show');
-  btnPrev.style.visibility = '';
-  btnNext.style.visibility = '';
-
-  // Set track to flex row — slides sit side by side, translateX scrolls them
-  track.style.display   = 'flex';
-  track.style.width     = (posts.length * 100) + '%';
-  track.style.height    = '100%';
-  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
-  track.style.willChange = 'transform';
+  prevBtn.style.visibility = '';
+  nextBtn.style.visibility = '';
 
   posts.forEach((p, i) => {
-    const slide = mkSlide(p, i);
-    slide.style.width = (100 / posts.length) + '%';
-    slide.style.flexShrink = '0';
-    slide.style.height = '100%';
-    slide.style.position = 'relative';
-    slide.style.overflow = 'hidden';
-    track.appendChild(slide);
+    const s = makeSlide(p, i);
+    track.appendChild(s);
+    slides.push(s);
 
-    const d = document.createElement('span');
+    const d = document.createElement('button');
     d.className = 'dot';
-    d.dataset.i = i;
-    d.addEventListener('click', () => { goTo(i); resetAuto(); });
+    d.setAttribute('aria-label', `Slide ${i + 1}`);
+    d.addEventListener('click', () => { goTo(i); if (isPlaying) startAuto(); });
     dotsWrap.appendChild(d);
+    dots.push(d);
   });
 }
 
-/* ── MAKE ONE SLIDE ──────────────────────────────────────────────────────── */
-function mkSlide(p, i) {
+/* ── Create one slide element ────────────────────────────────────────────── */
+function makeSlide(p, i) {
   const s = document.createElement('div');
   s.className = 'slide';
-  s.dataset.i = i;
 
   if (p.type === 'text') {
-    const wrap = document.createElement('div');
-    wrap.className = `slide-text theme-${p.bgtheme || 'blue'}`
-    wrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
-    const titleParts = (p.title || '').split(' ');
-    const titleHTML  = titleParts.length > 1
-      ? `<em>${titleParts[0]}</em> ${titleParts.slice(1).join(' ')}`
-      : (p.title || '');
-    wrap.innerHTML = `
-      <div class="text-content">
-        <div class="slide-tag">${p.category || 'Announcement'}</div>
-        <div class="slide-headline">${titleHTML}</div>
-        <div class="slide-divider"></div>
-        <div class="slide-body">${p.content || ''}</div>
-      </div>`;
-    s.appendChild(wrap);
+    const bg = document.createElement('div');
+    bg.className = `slide-bg theme-${p.bgtheme || 'blue'}`;
+    const ov = document.createElement('div'); ov.className = 'slide-overlay';
+    const co = document.createElement('div'); co.className = 'slide-content';
+    co.innerHTML = `
+      <span class="slide-tag">${esc(p.category || 'Announcement')}</span>
+      <h2 class="slide-title">${esc(p.title || '')}</h2>
+      <p class="slide-body">${esc(p.content || '')}</p>`;
+    s.append(bg, ov, co);
 
   } else if (p.type === 'image') {
     const img = document.createElement('img');
+    img.className = 'slide-img';
     img.src = p.mediaUrl || ''; img.alt = p.title || '';
-    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
-    const overlay = document.createElement('div');
-    overlay.className = 'img-overlay';
-    const cap = document.createElement('div');
-    cap.className = 'img-caption';
-    cap.innerHTML = `
-      <div class="cap-left">
-        <div class="cap-tag">${p.category || 'Photo'}</div>
-        <div class="cap-title">${p.title || ''}</div>
-      </div>`;
-    s.append(img, overlay, cap);
+    const ov = document.createElement('div'); ov.className = 'slide-overlay';
+    const co = document.createElement('div'); co.className = 'slide-content';
+    co.innerHTML = `
+      <span class="slide-tag">${esc(p.category || 'Photo')}</span>
+      <h2 class="slide-title">${esc(p.title || '')}</h2>
+      ${p.content ? `<p class="slide-body">${esc(p.content)}</p>` : ''}`;
+    s.append(img, ov, co);
 
   } else if (p.type === 'video') {
     const vid = document.createElement('video');
+    vid.className = 'slide-vid';
     vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
-    vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
     const src = document.createElement('source');
     src.src = p.mediaUrl || ''; src.type = 'video/mp4';
     vid.appendChild(src);
-    const vOverlay = document.createElement('div');
-    vOverlay.className = 'vid-overlay';
-    const vCap = document.createElement('div');
-    vCap.className = 'vid-caption';
-    vCap.innerHTML = `
-      <div class="vid-tag">${p.category || 'Video'}</div>
-      <div class="vid-title">${p.title || ''}</div>`;
-    s.append(vid, vOverlay, vCap);
+    const ov = document.createElement('div'); ov.className = 'slide-overlay';
+    const co = document.createElement('div'); co.className = 'slide-content';
+    co.innerHTML = `
+      <span class="slide-tag">${esc(p.category || 'Video')}</span>
+      <h2 class="slide-title">${esc(p.title || '')}</h2>`;
+    s.append(vid, ov, co);
   }
 
+  // Slide number badge
+  const num = document.createElement('div');
+  num.className = 'slide-number';
+  num.innerHTML = `<strong>${String(i + 1).padStart(2,'0')}</strong> / ${String(posts.length).padStart(2,'0')}`;
+  s.appendChild(num);
   return s;
 }
 
-/* ── GO TO SLIDE (translateX — same as proven slider) ────────────────────── */
-function goTo(i) {
-  const total = posts.length;
-  if (!total) return;
+/* ── goTo(index) — translateX, same as proven working slider ─────────────── */
+function goTo(index) {
+  if (!slides.length) return;
+  const total = slides.length;
 
-  // Stop any playing video on current slide
-  const prevSlide = track.children[current];
-  if (prevSlide) {
-    const pv = prevSlide.querySelector('video');
-    if (pv) { pv.pause(); pv.onended = null; }
-    // Remove active class for content animation
-    prevSlide.classList.remove('active');
-  }
+  // Pause video on outgoing slide
+  const outVid = slides[current]?.querySelector('video');
+  if (outVid) { outVid.pause(); outVid.onended = null; }
 
-  current = ((i % total) + total) % total;
+  current = ((index % total) + total) % total;
 
-  // ── THE KEY: translateX the entire track ──
-  // Because track.width = posts.length * 100%, each slide is (100/posts.length)%
-  // So slide i starts at i * (100/posts.length)% of track = i * 100% of viewport
-  track.style.transform = `translateX(-${current * (100 / posts.length)}%)`;
+  // THE core move — shift the flex track
+  track.style.transform = `translateX(-${current * 100}%)`;
 
-  // Update active slide
-  const curSlide = track.children[current];
-  if (curSlide) curSlide.classList.add('active');
+  // Sync active class on slides and dots
+  slides.forEach((s, i) => s.classList.toggle('active', i === current));
+  dots.forEach((d, i)   => d.classList.toggle('active', i === current));
 
-  // Update dots & counter
-  Array.from(dotsWrap.querySelectorAll('.dot')).forEach((d, di) =>
-    d.classList.toggle('active', di === current)
-  );
-  counter.textContent = `${current + 1} / ${total}`;
-
-  // Handle video
-  if (curSlide) {
-    const vid = curSlide.querySelector('video');
-    if (vid) {
-      vid.currentTime = 0;
-      vid.play().catch(() => {});
-    }
-  }
+  // Play video on incoming slide
+  const inVid = slides[current]?.querySelector('video');
+  if (inVid) { inVid.currentTime = 0; inVid.play().catch(() => {}); }
 }
 
-/* ── PROGRESS BAR (setInterval tick — same as proven slider) ─────────────── */
+/* ── Progress bar (setInterval tick — exact from working slider) ──────────── */
 function resetProgress() {
   startTime = performance.now();
-  pFill.style.transition = 'none';
-  pFill.style.width = '0%';
-  // force reflow
-  void pFill.offsetWidth;
+  progressBar.style.transition = 'none';
+  progressBar.style.width = '0%';
+  void progressBar.offsetWidth;   // force reflow
 }
 
 function tickProgress() {
   if (!isPlaying) return;
-  const elapsed = performance.now() - startTime;
-  const pct = Math.min((elapsed / INTERVAL) * 100, 100);
-  pFill.style.width = pct + '%';
+  const pct = Math.min(((performance.now() - startTime) / INTERVAL) * 100, 100);
+  progressBar.style.width = pct + '%';
 }
 
-/* ── AUTO PLAY ───────────────────────────────────────────────────────────── */
+/* ── Auto play (setTimeout + setInterval — exact from working slider) ────── */
 function startAuto() {
   stopAuto();
-  // Set interval from current slide's duration
+  if (!slides.length) return;
+
   INTERVAL = Number(posts[current]?.duration) || 7000;
+
+  // Video slides: onended drives the advance; use long fallback
+  const vid = slides[current]?.querySelector('video');
+  if (vid) {
+    vid.onended = () => { goTo(current + 1); startAuto(); };
+    vid.play().catch(() => {});
+    INTERVAL = 60000;
+  }
 
   resetProgress();
   progTimer = setInterval(tickProgress, TICK);
-
-  // Handle video slides specially
-  const curSlide = track.children[current];
-  if (curSlide) {
-    const vid = curSlide.querySelector('video');
-    if (vid) {
-      INTERVAL = 30000; // long fallback; video's onended will advance
-      vid.onended = () => { goTo(current + 1); resetAuto(); };
-      vid.play().catch(() => {});
-      return; // no setTimeout for videos
-    }
-  }
-
-  autoTimer = setTimeout(() => {
-    goTo(current + 1);
-    if (isPlaying) startAuto();
-  }, INTERVAL);
+  autoTimer = setTimeout(() => { goTo(current + 1); startAuto(); }, INTERVAL);
 }
 
 function stopAuto() {
@@ -869,37 +639,29 @@ function stopAuto() {
   clearInterval(progTimer); progTimer = null;
 }
 
-function resetAuto() {
-  stopAuto();
-  if (isPlaying) startAuto();
-}
-
-/* ── PLAY / PAUSE ────────────────────────────────────────────────────────── */
-ppBtn.addEventListener('click', () => {
+/* ── Toggle play/pause ───────────────────────────────────────────────────── */
+function togglePlay() {
   isPlaying = !isPlaying;
-  ppIcon.innerHTML = isPlaying ? PAUSE_SVG : PLAY_SVG;
+  iconPause.style.display = isPlaying ? ''     : 'none';
+  iconPlay.style.display  = isPlaying ? 'none' : '';
   if (isPlaying) {
     startAuto();
-    const vid = track.children[current]?.querySelector('video');
-    if (vid) vid.play().catch(() => {});
+    slides[current]?.querySelector('video')?.play().catch(() => {});
   } else {
     stopAuto();
-    const vid = track.children[current]?.querySelector('video');
-    if (vid) vid.pause();
-    // Freeze progress bar at current width
-    pFill.style.width = pFill.style.width;
+    slides[current]?.querySelector('video')?.pause();
   }
-});
+}
 
-/* ── ARROWS ──────────────────────────────────────────────────────────────── */
-btnPrev.addEventListener('click', e => { e.stopPropagation(); goTo(current - 1); resetAuto(); });
-btnNext.addEventListener('click', e => { e.stopPropagation(); goTo(current + 1); resetAuto(); });
+/* ── Events — arrows, play, keyboard ────────────────────────────────────── */
+prevBtn.addEventListener('click', () => { goTo(current - 1); if (isPlaying) startAuto(); });
+nextBtn.addEventListener('click', () => { goTo(current + 1); if (isPlaying) startAuto(); });
+playBtn.addEventListener('click', togglePlay);
 
-/* ── KEYBOARD ────────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAuto(); }
-  if (e.key === 'ArrowRight') { goTo(current + 1); resetAuto(); }
-  if (e.key === ' ') { e.preventDefault(); ppBtn.click(); }
+  if (e.key === 'ArrowLeft')       { goTo(current - 1); if (isPlaying) startAuto(); }
+  if (e.key === 'ArrowRight')      { goTo(current + 1); if (isPlaying) startAuto(); }
+  if (e.key === ' ')               { e.preventDefault(); togglePlay(); }
   if (e.key === 'f' || e.key === 'F') {
     document.fullscreenElement
       ? document.exitFullscreen()
@@ -907,80 +669,76 @@ document.addEventListener('keydown', e => {
   }
 });
 
-/* ── SWIPE ───────────────────────────────────────────────────────────────── */
-let touchX = 0;
-document.getElementById('stage').addEventListener('touchstart', e => {
-  touchX = e.touches[0].clientX;
-}, { passive: true });
-document.getElementById('stage').addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchX;
-  if (Math.abs(dx) > 40) { dx < 0 ? goTo(current + 1) : goTo(current - 1); resetAuto(); }
-}, { passive: true });
+/* ── Swipe & drag — exact port from working slider ──────────────────────── */
+let dragStartX = null;
+let isDragging = false;
 
-/* ── DRAG (mouse) ────────────────────────────────────────────────────────── */
-let dragX = null, dragging = false;
-const stageEl = document.getElementById('stage');
-stageEl.addEventListener('mousedown', e => { dragX = e.clientX; dragging = true; track.style.transition = 'none'; });
-stageEl.addEventListener('mousemove', e => {
-  if (!dragging) return;
-  const diff = e.clientX - dragX;
-  const base = current * (100 / posts.length);
-  const pct  = diff / stageEl.offsetWidth * 100;
-  track.style.transform = `translateX(calc(-${base}% + ${pct * 0.4}%))`;
-});
-stageEl.addEventListener('mouseup', e => {
-  if (!dragging) return; dragging = false;
-  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
-  const diff = dragX - e.clientX;
-  if (Math.abs(diff) > 60) { diff > 0 ? goTo(current + 1) : goTo(current - 1); resetAuto(); }
-  else goTo(current); // snap back
-  dragX = null;
-});
-stageEl.addEventListener('mouseleave', e => {
-  if (!dragging) return; dragging = false;
-  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
-  goTo(current);
-});
-
-/* ── CLICK STAGE TO ADVANCE ──────────────────────────────────────────────── */
-stageEl.addEventListener('click', e => {
-  if (dragging) return;
-  const blocked = e.composedPath().some(el =>
-    el.classList && (
-      el.classList.contains('arrow-btn') ||
-      el.id === 'play-pause' ||
-      el.id === 'dots-wrap' ||
-      el.id === 'slide-counter' ||
-      el.classList.contains('dot')
-    )
-  );
-  if (blocked) return;
-  goTo(current + 1); resetAuto();
-});
-
-/* ── CUSTOM CURSOR ───────────────────────────────────────────────────────── */
-document.addEventListener('mousemove', e => {
-  cursorEl.style.left = e.clientX + 'px';
-  cursorEl.style.top  = e.clientY + 'px';
-});
-
-/* ── CLOCK ───────────────────────────────────────────────────────────────── */
-function tick() {
-  const n  = new Date();
-  let h    = n.getHours();
-  const ap = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  document.getElementById('b-h').textContent   = String(h).padStart(2, '0');
-  document.getElementById('b-m').textContent   = String(n.getMinutes()).padStart(2, '0');
-  document.getElementById('b-s').textContent   = String(n.getSeconds()).padStart(2, '0');
-  document.getElementById('b-ampm').textContent = ap;
-  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('b-day').textContent  = DAYS[n.getDay()];
-  document.getElementById('b-date').textContent = `${MONTHS[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+function onPointerDown(e) {
+  dragStartX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+  isDragging = true;
+}
+function onPointerMove(e) {
+  if (!isDragging) return;
+  const x    = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+  const diff = x - dragStartX;
+  track.style.transition = 'none';
+  track.style.transform  = `translateX(calc(-${current * 100}% + ${diff * 0.4}px))`;
+}
+function onPointerUp(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  track.style.transition = '';  // restore CSS transition
+  const endX = e.type.startsWith('touch') ? e.changedTouches[0].clientX : e.clientX;
+  const diff  = dragStartX - endX;
+  if (Math.abs(diff) > 50) {
+    diff > 0 ? goTo(current + 1) : goTo(current - 1);
+    if (isPlaying) startAuto();
+  } else {
+    goTo(current); // snap back
+  }
+  dragStartX = null;
 }
 
-/* ── MINI CALENDAR ───────────────────────────────────────────────────────── */
+sliderEl.addEventListener('mousedown',  onPointerDown);
+sliderEl.addEventListener('mousemove',  onPointerMove);
+sliderEl.addEventListener('mouseup',    onPointerUp);
+sliderEl.addEventListener('mouseleave', onPointerUp);
+sliderEl.addEventListener('touchstart', onPointerDown, { passive: true });
+sliderEl.addEventListener('touchmove',  onPointerMove, { passive: true });
+sliderEl.addEventListener('touchend',   onPointerUp);
+
+// Pause on hover, resume on leave — same as working slider
+sliderEl.addEventListener('mouseenter', () => { if (isPlaying) stopAuto(); });
+sliderEl.addEventListener('mouseleave', () => { if (isPlaying && !isDragging) startAuto(); });
+
+/* ── HTML escape ─────────────────────────────────────────────────────────── */
+function esc(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════════════════════════════ */
+function tick() {
+  const n = new Date();
+  let h   = n.getHours();
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  document.getElementById('b-h').textContent    = String(h).padStart(2,'0');
+  document.getElementById('b-m').textContent    = String(n.getMinutes()).padStart(2,'0');
+  document.getElementById('b-s').textContent    = String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('b-ampm').textContent = ap;
+  const D = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('b-day').textContent  = D[n.getDay()];
+  document.getElementById('b-date').textContent = `${M[n.getMonth()]} ${n.getDate()}, ${n.getFullYear()}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MINI CALENDAR
+═══════════════════════════════════════════════════════════════════════════ */
 function buildCal() {
   const now = new Date(), t = now.getDate();
   const DN  = ['Su','Mo','Tu','We','Th','Fr','Sa'];
@@ -989,13 +747,15 @@ function buildCal() {
   for (let off = -2; off <= 3; off++) {
     const d   = new Date(now); d.setDate(t + off);
     const col = document.createElement('div'); col.className = 'cal-col';
-    const dn  = document.createElement('div'); dn.className = 'cal-dname'; dn.textContent = DN[d.getDay()];
-    const dd  = document.createElement('div'); dd.className = 'cal-dnum' + (off === 0 ? ' today' : ''); dd.textContent = d.getDate();
+    const dn  = document.createElement('div'); dn.className = 'cal-dn'; dn.textContent = DN[d.getDay()];
+    const dd  = document.createElement('div'); dd.className = 'cal-dd' + (off === 0 ? ' today' : ''); dd.textContent = d.getDate();
     col.append(dn, dd); cal.appendChild(col);
   }
 }
 
-/* ── WEATHER ─────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   WEATHER
+═══════════════════════════════════════════════════════════════════════════ */
 async function fetchWeather() {
   try {
     const r = await fetch(
@@ -1003,15 +763,14 @@ async function fetchWeather() {
     );
     const j = await r.json();
     if (j.cod !== 200) throw new Error(j.message);
-    document.getElementById('wx-icon').textContent  = WX_ICONS[j.weather[0].icon] || '🌡️';
-    document.getElementById('wx-temp').textContent  = `${Math.round(j.main.temp)}°`;
-    document.getElementById('wx-desc').textContent  = j.weather[0].description;
-    document.getElementById('wx-city').textContent  = `${j.name}, ${j.sys.country}`;
-    document.getElementById('wx-hum').textContent   = `💧 ${j.main.humidity}%`;
-    document.getElementById('wx-wind').textContent  = `💨 ${Math.round(j.wind.speed * 3.6)} km/h`;
+    document.getElementById('wx-icon').textContent = WX_ICONS[j.weather[0].icon] || '🌡️';
+    document.getElementById('wx-temp').textContent = `${Math.round(j.main.temp)}°`;
+    document.getElementById('wx-desc').textContent = j.weather[0].description;
+    document.getElementById('wx-city').textContent = `${j.name}, ${j.sys.country}`;
+    document.getElementById('wx-hum').textContent  = `💧 ${j.main.humidity}%`;
+    document.getElementById('wx-wind').textContent = `💨 ${Math.round(j.wind.speed * 3.6)} km/h`;
   } catch {
-    document.getElementById('wx-desc').textContent = 'Unavailable';
-    document.getElementById('wx-city').textContent = 'Check OWM_KEY';
+    document.getElementById('wx-desc').textContent = 'Weather unavailable';
   }
 }
 
