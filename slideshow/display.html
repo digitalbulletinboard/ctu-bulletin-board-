@@ -27,6 +27,13 @@
       cursor: none;
     }
 
+    /* Slides container */
+    #slides-container {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;  /* children handle their own pointer events */
+    }
+
     /* ══════════════════════════════════════════════════════════
        LOADING SCREEN
     ══════════════════════════════════════════════════════════ */
@@ -80,6 +87,8 @@
       opacity: 1; transform: scale(1);
       pointer-events: auto; z-index: 2;
     }
+    #slides-container .slide { pointer-events: none; }
+    #slides-container .slide.active { pointer-events: auto; }
     /* .exit class removed — slides deactivate cleanly via removing .active */
 
     /* TEXT SLIDES */
@@ -515,6 +524,9 @@
 <div id="stage">
   <!-- Slides rendered here -->
 
+  <!-- Slides container — separate from arrow buttons so insertions stay ordered -->
+  <div id="slides-container"></div>
+
   <!-- Navigation arrows -->
   <button class="arrow-btn" id="btn-prev" title="Previous">
     <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"></polyline></svg>
@@ -668,7 +680,8 @@ onValue(ref(db, 'posts'), snap => {
 
 /* ── BUILD SLIDES ─────────────────────────────────────────────────────────── */
 function rebuild() {
-  stage.querySelectorAll('.slide').forEach(e => e.remove());
+  const sc = document.getElementById('slides-container');
+  if (sc) sc.innerHTML = '';
   dotsWrap.innerHTML = '';
 
   if (!posts.length) {
@@ -684,8 +697,9 @@ function rebuild() {
   btnPrev.style.opacity = ''; btnPrev.style.pointerEvents = '';
   btnNext.style.opacity = ''; btnNext.style.pointerEvents = '';
 
+  const slidesContainer = document.getElementById('slides-container');
   posts.forEach((p, i) => {
-    stage.insertBefore(mkSlide(p, i), stage.querySelector('.arrow-btn'));
+    slidesContainer.appendChild(mkSlide(p, i));
 
     const d = document.createElement('span');
     d.className = 'dot';
@@ -778,8 +792,9 @@ if (!document.getElementById('kb-style')) {
 let exitTimer = null;   // separate timer for removing .exit class
 
 function go(i) {
-  const slides = stage.querySelectorAll('.slide');
-  const dots   = dotsWrap.querySelectorAll('.dot');
+  const slidesContainer = document.getElementById('slides-container');
+  const slides = Array.from(slidesContainer.querySelectorAll('.slide'));
+  const dots   = Array.from(dotsWrap.querySelectorAll('.dot'));
   if (!slides.length) return;
 
   kill();
