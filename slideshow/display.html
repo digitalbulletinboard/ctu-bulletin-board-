@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bulletin Board Display</title>
-  <link rel="shortcut icon" href="logo.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -27,11 +26,12 @@
       cursor: none;
     }
 
-    /* Slides container */
+    /* Slides container — acts as the sliding TRACK (translateX scrolls it) */
     #slides-container {
       position: absolute;
       inset: 0;
-      pointer-events: none;  /* children handle their own pointer events */
+      display: flex;
+      overflow: hidden;   /* clips slides outside viewport */
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -607,7 +607,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/* ── CONFIG ─────────────────────────────────────────────────────────────── */
+/* ── CONFIG ──────────────────────────────────────────────────────────────── */
 const OWM_KEY  = "f5168c305674a67a705409181a80046d";
 const OWM_CITY = "Cebu City";
 const OWM_UNIT = "metric";
@@ -621,12 +621,11 @@ const FB = {
   messagingSenderId: "987342604782",
   appId:             "1:987342604782:web:90f8a7e895e8f8a2b026ff"
 };
-/* ─────────────────────────────────────────────────────────────────────────── */
 
 const db = getDatabase(initializeApp(FB));
 
 /* ── DOM ─────────────────────────────────────────────────────────────────── */
-const stage    = document.getElementById('stage');
+const track    = document.getElementById('slides-container'); // acts as the sliding track
 const dotsWrap = document.getElementById('dots-wrap');
 const pFill    = document.getElementById('progress-fill');
 const counter  = document.getElementById('slide-counter');
@@ -635,22 +634,22 @@ const ppIcon   = document.getElementById('pp-icon');
 const emptyEl  = document.getElementById('empty-state');
 const btnPrev  = document.getElementById('btn-prev');
 const btnNext  = document.getElementById('btn-next');
-const cursor   = document.getElementById('cursor');
+const cursorEl = document.getElementById('cursor');
 
-/* ── STATE ───────────────────────────────────────────────────────────────── */
-let posts    = [];
-let idx      = 0;
-let timer    = null;
-let paused   = false;
-let loaded   = false;
-let pauseStart = 0;
-let remainMs   = 0;
+/* ── SLIDER STATE (mirrors the proven working slider) ────────────────────── */
+let posts      = [];
+let current    = 0;
+let isPlaying  = true;
+let autoTimer  = null;
+let progTimer  = null;
+let startTime  = null;
+let loaded     = false;
+let INTERVAL   = 7000;   // overridden per-slide
+const TICK     = 50;     // progress bar tick ms
 
-/* ── ICONS (SVG paths) ───────────────────────────────────────────────────── */
 const PAUSE_SVG = `<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>`;
 const PLAY_SVG  = `<polygon points="5,3 19,12 5,21"></polygon>`;
 
-/* ── WEATHER ICON MAP ────────────────────────────────────────────────────── */
 const WX_ICONS = {
   '01d':'☀️','01n':'🌙','02d':'⛅','02n':'☁️','03d':'☁️','03n':'☁️',
   '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
@@ -659,7 +658,7 @@ const WX_ICONS = {
 
 /* ── FIREBASE ─────────────────────────────────────────────────────────────── */
 onValue(ref(db, 'posts'), snap => {
-  const prevKey = posts[idx]?._key ?? null;
+  const prevKey = posts[current]?._key ?? null;
   posts = [];
   if (snap.exists()) snap.forEach(c => posts.push({ _key: c.key, ...c.val() }));
 
@@ -667,48 +666,62 @@ onValue(ref(db, 'posts'), snap => {
 
   if (!loaded) {
     loaded = true;
-    go(0);
+    goTo(0);
+    startAuto();
     const ldr = document.getElementById('loader');
-    ldr.classList.add('fade');
-    setTimeout(() => ldr.remove(), 800);
+    if (ldr) { ldr.classList.add('fade'); setTimeout(() => ldr.remove(), 800); }
   } else {
+    stopAuto();
     const ni = posts.findIndex(p => p._key === prevKey);
-    idx = ni >= 0 ? ni : 0;
-    go(idx);
+    current = ni >= 0 ? ni : 0;
+    goTo(current);
+    if (isPlaying) startAuto();
   }
 });
 
-/* ── BUILD SLIDES ─────────────────────────────────────────────────────────── */
+/* ── BUILD SLIDES ────────────────────────────────────────────────────────── */
 function rebuild() {
-  const sc = document.getElementById('slides-container');
-  if (sc) sc.innerHTML = '';
+  track.innerHTML = '';
   dotsWrap.innerHTML = '';
 
   if (!posts.length) {
     emptyEl.classList.add('show');
-    btnPrev.style.opacity = '0'; btnPrev.style.pointerEvents = 'none';
-    btnNext.style.opacity = '0'; btnNext.style.pointerEvents = 'none';
+    btnPrev.style.visibility = 'hidden';
+    btnNext.style.visibility = 'hidden';
     counter.textContent = '0 / 0';
-    kill();
+    stopAuto();
     return;
   }
 
   emptyEl.classList.remove('show');
-  btnPrev.style.opacity = ''; btnPrev.style.pointerEvents = '';
-  btnNext.style.opacity = ''; btnNext.style.pointerEvents = '';
+  btnPrev.style.visibility = '';
+  btnNext.style.visibility = '';
 
-  const slidesContainer = document.getElementById('slides-container');
+  // Set track to flex row — slides sit side by side, translateX scrolls them
+  track.style.display   = 'flex';
+  track.style.width     = (posts.length * 100) + '%';
+  track.style.height    = '100%';
+  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
+  track.style.willChange = 'transform';
+
   posts.forEach((p, i) => {
-    slidesContainer.appendChild(mkSlide(p, i));
+    const slide = mkSlide(p, i);
+    slide.style.width = (100 / posts.length) + '%';
+    slide.style.flexShrink = '0';
+    slide.style.height = '100%';
+    slide.style.position = 'relative';
+    slide.style.overflow = 'hidden';
+    track.appendChild(slide);
 
     const d = document.createElement('span');
     d.className = 'dot';
     d.dataset.i = i;
-    d.addEventListener('click', () => go(i));
+    d.addEventListener('click', () => { goTo(i); resetAuto(); });
     dotsWrap.appendChild(d);
   });
 }
 
+/* ── MAKE ONE SLIDE ──────────────────────────────────────────────────────── */
 function mkSlide(p, i) {
   const s = document.createElement('div');
   s.className = 'slide';
@@ -716,14 +729,12 @@ function mkSlide(p, i) {
 
   if (p.type === 'text') {
     const wrap = document.createElement('div');
-    wrap.className = `slide-text theme-${p.bgtheme || 'blue'}`;
-
-    // highlight first word with italics for visual interest
+    wrap.className = `slide-text theme-${p.bgtheme || 'blue'}`
+    wrap.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;';
     const titleParts = (p.title || '').split(' ');
-    const titleHTML = titleParts.length > 1
+    const titleHTML  = titleParts.length > 1
       ? `<em>${titleParts[0]}</em> ${titleParts.slice(1).join(' ')}`
-      : p.title || '';
-
+      : (p.title || '');
     wrap.innerHTML = `
       <div class="text-content">
         <div class="slide-tag">${p.category || 'Announcement'}</div>
@@ -734,14 +745,9 @@ function mkSlide(p, i) {
     s.appendChild(wrap);
 
   } else if (p.type === 'image') {
-    const wrap = document.createElement('div');
-    wrap.className = 'slide-image';
     const img = document.createElement('img');
     img.src = p.mediaUrl || ''; img.alt = p.title || '';
-    // Ken Burns zoom effect
-    img.style.cssText = `
-      animation: kenburns ${(Number(p.duration)||7000)/1000 + 2}s ease-out both;
-    `;
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
     const overlay = document.createElement('div');
     overlay.className = 'img-overlay';
     const cap = document.createElement('div');
@@ -751,14 +757,12 @@ function mkSlide(p, i) {
         <div class="cap-tag">${p.category || 'Photo'}</div>
         <div class="cap-title">${p.title || ''}</div>
       </div>`;
-    wrap.append(img, overlay, cap);
-    s.appendChild(wrap);
+    s.append(img, overlay, cap);
 
   } else if (p.type === 'video') {
-    const wrap = document.createElement('div');
-    wrap.className = 'slide-video';
     const vid = document.createElement('video');
     vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
+    vid.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
     const src = document.createElement('source');
     src.src = p.mediaUrl || ''; src.type = 'video/mp4';
     vid.appendChild(src);
@@ -769,183 +773,177 @@ function mkSlide(p, i) {
     vCap.innerHTML = `
       <div class="vid-tag">${p.category || 'Video'}</div>
       <div class="vid-title">${p.title || ''}</div>`;
-    wrap.append(vid, vOverlay, vCap);
-    s.appendChild(wrap);
+    s.append(vid, vOverlay, vCap);
   }
 
   return s;
 }
 
-/* ── Ken Burns keyframes (injected once) ─────────────────────────────────── */
-if (!document.getElementById('kb-style')) {
-  const st = document.createElement('style');
-  st.id = 'kb-style';
-  st.textContent = `
-    @keyframes kenburns {
-      from { transform: scale(1.08) translate(1%, 1%); }
-      to   { transform: scale(1.00) translate(0%, 0%); }
-    }`;
-  document.head.appendChild(st);
-}
+/* ── GO TO SLIDE (translateX — same as proven slider) ────────────────────── */
+function goTo(i) {
+  const total = posts.length;
+  if (!total) return;
 
-/* ── GO TO SLIDE ─────────────────────────────────────────────────────────── */
-let exitTimer = null;   // separate timer for removing .exit class
-
-function go(i) {
-  const slidesContainer = document.getElementById('slides-container');
-  const slides = Array.from(slidesContainer.querySelectorAll('.slide'));
-  const dots   = Array.from(dotsWrap.querySelectorAll('.dot'));
-  if (!slides.length) return;
-
-  kill();
-
-  // Cancel any pending exit-class cleanup from a previous rapid navigation
-  if (exitTimer) { clearTimeout(exitTimer); exitTimer = null; }
-
-  i = ((i % slides.length) + slides.length) % slides.length;
-
-  // Deactivate ALL slides immediately — no intermediate state
-  slides.forEach((s, si) => {
-    s.classList.remove('active', 'exit');
-    dots[si]?.classList.remove('active');
-    const v = s.querySelector('video');
-    if (v) { v.pause(); v.currentTime = 0; v.onended = null; }
-    const img = s.querySelector('.slide-image img');
-    if (img) { img.style.animation = 'none'; }
-  });
-
-  idx = i;
-  const slide = slides[i];
-  slide.classList.add('active');
-  dots[i]?.classList.add('active');
-  counter.textContent = `${i + 1} / ${posts.length}`;
-
-  // Re-trigger Ken Burns with a tiny delay so the browser registers the reset
-  const img = slide.querySelector('.slide-image img');
-  if (img) {
-    const dur = (Number(posts[i]?.duration) || 7000) / 1000 + 2;
-    requestAnimationFrame(() => {
-      img.style.animation = `kenburns ${dur}s ease-out both`;
-    });
+  // Stop any playing video on current slide
+  const prevSlide = track.children[current];
+  if (prevSlide) {
+    const pv = prevSlide.querySelector('video');
+    if (pv) { pv.pause(); pv.onended = null; }
+    // Remove active class for content animation
+    prevSlide.classList.remove('active');
   }
 
-  if (paused) return;
+  current = ((i % total) + total) % total;
 
-  // Video slide
-  const vid = slide.querySelector('video');
-  if (vid) {
-    progressBar(0);
-    vid.onended = () => go(idx + 1);
+  // ── THE KEY: translateX the entire track ──
+  // Because track.width = posts.length * 100%, each slide is (100/posts.length)%
+  // So slide i starts at i * (100/posts.length)% of track = i * 100% of viewport
+  track.style.transform = `translateX(-${current * (100 / posts.length)}%)`;
 
-    const startV = () => {
+  // Update active slide
+  const curSlide = track.children[current];
+  if (curSlide) curSlide.classList.add('active');
+
+  // Update dots & counter
+  Array.from(dotsWrap.querySelectorAll('.dot')).forEach((d, di) =>
+    d.classList.toggle('active', di === current)
+  );
+  counter.textContent = `${current + 1} / ${total}`;
+
+  // Handle video
+  if (curSlide) {
+    const vid = curSlide.querySelector('video');
+    if (vid) {
+      vid.currentTime = 0;
       vid.play().catch(() => {});
-      const dur = (isFinite(vid.duration) && vid.duration > 0) ? vid.duration * 1000 : 10000;
-      progressBar(dur);
-      timer = setTimeout(() => go(idx + 1), dur + 300);
-    };
-
-    if (vid.readyState >= 1) startV();
-    else {
-      vid.addEventListener('loadedmetadata', startV, { once: true });
-      timer = setTimeout(() => { vid.removeEventListener('loadedmetadata', startV); go(idx + 1); }, 12000);
     }
-    return;
   }
-
-  // Text / image slide
-  const ms = Number(posts[i]?.duration) || 7000;
-  remainMs = ms;
-  progressBar(ms);
-  timer = setTimeout(() => go(idx + 1), ms);
 }
 
-/* ── PROGRESS BAR ────────────────────────────────────────────────────────── */
-function progressBar(ms) {
+/* ── PROGRESS BAR (setInterval tick — same as proven slider) ─────────────── */
+function resetProgress() {
+  startTime = performance.now();
   pFill.style.transition = 'none';
   pFill.style.width = '0%';
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    pFill.style.transition = `width ${ms}ms linear`;
-    pFill.style.width = '100%';
-  }));
+  // force reflow
+  void pFill.offsetWidth;
 }
 
-function kill() {
-  if (timer) { clearTimeout(timer); timer = null; }
+function tickProgress() {
+  if (!isPlaying) return;
+  const elapsed = performance.now() - startTime;
+  const pct = Math.min((elapsed / INTERVAL) * 100, 100);
+  pFill.style.width = pct + '%';
 }
 
-/* ── PLAY / PAUSE ─────────────────────────────────────────────────────────── */
-ppBtn.addEventListener('click', () => {
-  paused = !paused;
-  ppIcon.innerHTML = paused ? PLAY_SVG : PAUSE_SVG;
+/* ── AUTO PLAY ───────────────────────────────────────────────────────────── */
+function startAuto() {
+  stopAuto();
+  // Set interval from current slide's duration
+  INTERVAL = Number(posts[current]?.duration) || 7000;
 
-  if (paused) {
-    kill();
-    // Pause progress bar
-    const computed = getComputedStyle(pFill).width;
-    const trackW   = pFill.parentElement.offsetWidth;
-    const pct      = (parseFloat(computed) / trackW) * 100;
-    pFill.style.transition = 'none';
-    pFill.style.width = pct + '%';
+  resetProgress();
+  progTimer = setInterval(tickProgress, TICK);
 
-    const vid = stage.querySelector('.slide.active video');
-    if (vid) vid.pause();
-  } else {
-    const vid = stage.querySelector('.slide.active video');
+  // Handle video slides specially
+  const curSlide = track.children[current];
+  if (curSlide) {
+    const vid = curSlide.querySelector('video');
     if (vid) {
+      INTERVAL = 30000; // long fallback; video's onended will advance
+      vid.onended = () => { goTo(current + 1); resetAuto(); };
       vid.play().catch(() => {});
-      const ms = vid.duration ? (vid.duration - vid.currentTime) * 1000 : 7000;
-      progressBar(ms);
-      timer = setTimeout(() => go(idx + 1), ms);
-    } else {
-      const ms = Number(posts[idx]?.duration) || 7000;
-      progressBar(ms);
-      timer = setTimeout(() => go(idx + 1), ms);
+      return; // no setTimeout for videos
     }
+  }
+
+  autoTimer = setTimeout(() => {
+    goTo(current + 1);
+    if (isPlaying) startAuto();
+  }, INTERVAL);
+}
+
+function stopAuto() {
+  clearTimeout(autoTimer);  autoTimer = null;
+  clearInterval(progTimer); progTimer = null;
+}
+
+function resetAuto() {
+  stopAuto();
+  if (isPlaying) startAuto();
+}
+
+/* ── PLAY / PAUSE ────────────────────────────────────────────────────────── */
+ppBtn.addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  ppIcon.innerHTML = isPlaying ? PAUSE_SVG : PLAY_SVG;
+  if (isPlaying) {
+    startAuto();
+    const vid = track.children[current]?.querySelector('video');
+    if (vid) vid.play().catch(() => {});
+  } else {
+    stopAuto();
+    const vid = track.children[current]?.querySelector('video');
+    if (vid) vid.pause();
+    // Freeze progress bar at current width
+    pFill.style.width = pFill.style.width;
   }
 });
 
 /* ── ARROWS ──────────────────────────────────────────────────────────────── */
-btnPrev.addEventListener('click', e => { e.stopPropagation(); go(idx - 1); });
-btnNext.addEventListener('click', e => { e.stopPropagation(); go(idx + 1); });
-
-/* ── DOTS ────────────────────────────────────────────────────────────────── */
-dotsWrap.addEventListener('click', e => {
-  const i = parseInt(e.target.dataset.i);
-  if (!isNaN(i)) go(i);
-});
+btnPrev.addEventListener('click', e => { e.stopPropagation(); goTo(current - 1); resetAuto(); });
+btnNext.addEventListener('click', e => { e.stopPropagation(); goTo(current + 1); resetAuto(); });
 
 /* ── KEYBOARD ────────────────────────────────────────────────────────────── */
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  go(idx - 1);
-  if (e.key === 'ArrowRight') go(idx + 1);
+  if (e.key === 'ArrowLeft')  { goTo(current - 1); resetAuto(); }
+  if (e.key === 'ArrowRight') { goTo(current + 1); resetAuto(); }
   if (e.key === ' ') { e.preventDefault(); ppBtn.click(); }
   if (e.key === 'f' || e.key === 'F') {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else document.documentElement.requestFullscreen().catch(() => {});
+    document.fullscreenElement
+      ? document.exitFullscreen()
+      : document.documentElement.requestFullscreen().catch(() => {});
   }
 });
 
-/* ── SWIPE GESTURES ──────────────────────────────────────────────────────── */
-let touchX = 0, touchY = 0;
-stage.addEventListener('touchstart', e => {
+/* ── SWIPE ───────────────────────────────────────────────────────────────── */
+let touchX = 0;
+document.getElementById('stage').addEventListener('touchstart', e => {
   touchX = e.touches[0].clientX;
-  touchY = e.touches[0].clientY;
+}, { passive: true });
+document.getElementById('stage').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 40) { dx < 0 ? goTo(current + 1) : goTo(current - 1); resetAuto(); }
 }, { passive: true });
 
-stage.addEventListener('touchend', e => {
-  const dx = e.changedTouches[0].clientX - touchX;
-  const dy = e.changedTouches[0].clientY - touchY;
-  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-    dx < 0 ? go(idx + 1) : go(idx - 1);
-    // Hide swipe hint after first swipe
-    const hint = document.getElementById('swipe-hint');
-    if (hint) { hint.style.display = 'none'; }
-  }
-}, { passive: true });
+/* ── DRAG (mouse) ────────────────────────────────────────────────────────── */
+let dragX = null, dragging = false;
+const stageEl = document.getElementById('stage');
+stageEl.addEventListener('mousedown', e => { dragX = e.clientX; dragging = true; track.style.transition = 'none'; });
+stageEl.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const diff = e.clientX - dragX;
+  const base = current * (100 / posts.length);
+  const pct  = diff / stageEl.offsetWidth * 100;
+  track.style.transform = `translateX(calc(-${base}% + ${pct * 0.4}%))`;
+});
+stageEl.addEventListener('mouseup', e => {
+  if (!dragging) return; dragging = false;
+  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
+  const diff = dragX - e.clientX;
+  if (Math.abs(diff) > 60) { diff > 0 ? goTo(current + 1) : goTo(current - 1); resetAuto(); }
+  else goTo(current); // snap back
+  dragX = null;
+});
+stageEl.addEventListener('mouseleave', e => {
+  if (!dragging) return; dragging = false;
+  track.style.transition = 'transform 0.72s cubic-bezier(0.77,0,0.18,1)';
+  goTo(current);
+});
 
 /* ── CLICK STAGE TO ADVANCE ──────────────────────────────────────────────── */
-stage.addEventListener('click', e => {
-  // Walk composedPath so SVG children inside arrow buttons are caught correctly
+stageEl.addEventListener('click', e => {
+  if (dragging) return;
   const blocked = e.composedPath().some(el =>
     el.classList && (
       el.classList.contains('arrow-btn') ||
@@ -956,19 +954,13 @@ stage.addEventListener('click', e => {
     )
   );
   if (blocked) return;
-  go(idx + 1);
+  goTo(current + 1); resetAuto();
 });
 
 /* ── CUSTOM CURSOR ───────────────────────────────────────────────────────── */
 document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top  = e.clientY + 'px';
-});
-document.addEventListener('mouseenter', () => cursor.style.opacity = '1');
-document.addEventListener('mouseleave', () => cursor.style.opacity = '0');
-document.querySelectorAll('button, a, .dot').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('big'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+  cursorEl.style.left = e.clientX + 'px';
+  cursorEl.style.top  = e.clientY + 'px';
 });
 
 /* ── CLOCK ───────────────────────────────────────────────────────────────── */
@@ -977,9 +969,9 @@ function tick() {
   let h    = n.getHours();
   const ap = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
-  document.getElementById('b-h').textContent  = String(h).padStart(2, '0');
-  document.getElementById('b-m').textContent  = String(n.getMinutes()).padStart(2, '0');
-  document.getElementById('b-s').textContent  = String(n.getSeconds()).padStart(2, '0');
+  document.getElementById('b-h').textContent   = String(h).padStart(2, '0');
+  document.getElementById('b-m').textContent   = String(n.getMinutes()).padStart(2, '0');
+  document.getElementById('b-s').textContent   = String(n.getSeconds()).padStart(2, '0');
   document.getElementById('b-ampm').textContent = ap;
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1027,15 +1019,6 @@ setInterval(tick, 1000); tick();
 buildCal();
 fetchWeather();
 setInterval(fetchWeather, 10 * 60 * 1000);
-
-/* Hover dot listeners (added dynamically) */
-const observer = new MutationObserver(() => {
-  document.querySelectorAll('button, a, .dot').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.classList.add('big'));
-    el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
-  });
-});
-observer.observe(dotsWrap, { childList: true });
 </script>
 </body>
 </html>
