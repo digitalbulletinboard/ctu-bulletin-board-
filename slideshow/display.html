@@ -80,10 +80,7 @@
       opacity: 1; transform: scale(1);
       pointer-events: auto; z-index: 2;
     }
-    .slide.exit {
-      opacity: 0; transform: scale(0.97);
-      z-index: 1; pointer-events: none;
-    }
+    /* .exit class removed — slides deactivate cleanly via removing .active */
 
     /* TEXT SLIDES */
     .slide-text {
@@ -778,30 +775,29 @@ if (!document.getElementById('kb-style')) {
 }
 
 /* ── GO TO SLIDE ─────────────────────────────────────────────────────────── */
+let exitTimer = null;   // separate timer for removing .exit class
+
 function go(i) {
   const slides = stage.querySelectorAll('.slide');
   const dots   = dotsWrap.querySelectorAll('.dot');
   if (!slides.length) return;
 
   kill();
+
+  // Cancel any pending exit-class cleanup from a previous rapid navigation
+  if (exitTimer) { clearTimeout(exitTimer); exitTimer = null; }
+
   i = ((i % slides.length) + slides.length) % slides.length;
 
-  // Deactivate outgoing slide
+  // Deactivate ALL slides immediately — no intermediate state
   slides.forEach((s, si) => {
-    if (s.classList.contains('active')) s.classList.add('exit');
-    s.classList.remove('active');
+    s.classList.remove('active', 'exit');
     dots[si]?.classList.remove('active');
     const v = s.querySelector('video');
     if (v) { v.pause(); v.currentTime = 0; v.onended = null; }
-    // Re-trigger Ken Burns on image slides
     const img = s.querySelector('.slide-image img');
     if (img) { img.style.animation = 'none'; }
   });
-
-  // Small delay then activate incoming
-  setTimeout(() => {
-    slides.forEach(s => s.classList.remove('exit'));
-  }, 950);
 
   idx = i;
   const slide = slides[i];
@@ -809,13 +805,13 @@ function go(i) {
   dots[i]?.classList.add('active');
   counter.textContent = `${i + 1} / ${posts.length}`;
 
-  // Re-trigger Ken Burns
+  // Re-trigger Ken Burns with a tiny delay so the browser registers the reset
   const img = slide.querySelector('.slide-image img');
   if (img) {
     const dur = (Number(posts[i]?.duration) || 7000) / 1000 + 2;
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       img.style.animation = `kenburns ${dur}s ease-out both`;
-    }, 50);
+    });
   }
 
   if (paused) return;
@@ -934,7 +930,17 @@ stage.addEventListener('touchend', e => {
 
 /* ── CLICK STAGE TO ADVANCE ──────────────────────────────────────────────── */
 stage.addEventListener('click', e => {
-  if (e.target.closest('.arrow-btn, #play-pause, #dots-wrap, #slide-counter')) return;
+  // Walk composedPath so SVG children inside arrow buttons are caught correctly
+  const blocked = e.composedPath().some(el =>
+    el.classList && (
+      el.classList.contains('arrow-btn') ||
+      el.id === 'play-pause' ||
+      el.id === 'dots-wrap' ||
+      el.id === 'slide-counter' ||
+      el.classList.contains('dot')
+    )
+  );
+  if (blocked) return;
   go(idx + 1);
 });
 
