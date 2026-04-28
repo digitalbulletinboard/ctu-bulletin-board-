@@ -335,6 +335,15 @@
   <div class="loader-text">LOADING BULLETIN BOARD…</div>
 </div>
 
+<!-- Debug overlay — remove once working -->
+<div id="dbg" style="
+  position:fixed;top:10px;left:50%;transform:translateX(-50%);
+  z-index:99998;background:rgba(0,0,0,0.85);color:#f0c040;
+  font:700 13px/1.6 monospace;padding:8px 16px;border-radius:8px;
+  border:1px solid #f0c040;pointer-events:none;text-align:center;
+  max-width:90vw;
+">Loading Firebase…</div>
+
 <!-- ═══ SLIDER ══════════════════════════════════════════════════════════ -->
 <div class="slider" id="slider">
 
@@ -420,7 +429,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 /* ── CONFIG ── */
 const FB = {
@@ -602,22 +611,61 @@ function rebuild() {
 onValue(ref(db, 'posts'), snap => {
   const prevKey = posts[cur]?._key ?? null;
   posts = [];
-  if (snap.exists()) snap.forEach(c => posts.push({ _key: c.key, ...c.val() }));
+
+  if (snap.exists()) {
+    snap.forEach(child => {
+      posts.push({ _key: child.key, ...child.val() });
+    });
+  }
+
+  console.log('[Display] posts loaded:', posts.length, posts.map(p=>p.title));
+  const dbgEl = document.getElementById('dbg');
+  if (dbgEl) {
+    if (posts.length === 0) {
+      dbgEl.textContent = 'Firebase: 0 posts found — check DB rules or path';
+    } else {
+      dbgEl.textContent = 'Firebase: ' + posts.length + ' post(s) → ' + posts.map(p=>p.title||'?').join(' | ');
+      setTimeout(()=>{ if(dbgEl) dbgEl.style.display='none'; }, 6000);
+    }
+  }
 
   rebuild();
 
   if (firstLoad) {
     firstLoad = false;
+    cur = 0;
     goTo(0);
     startAuto();
     const ldr = document.getElementById('loader');
     if (ldr) { ldr.classList.add('fade'); setTimeout(()=>ldr.remove(), 700); }
   } else {
+    stopAuto();
     const ni = posts.findIndex(p => p._key === prevKey);
     cur = ni >= 0 ? ni : 0;
     goTo(cur);
     startAuto();
   }
+});
+
+/* ── ONE-TIME GET to cross-check onValue ── */
+// This runs once and independently confirms what's actually in the DB
+get(ref(db, 'posts')).then(snap => {
+  const count = snap.exists() ? snap.size : 0;
+  console.log('[Display] get() cross-check: ' + count + ' posts in DB');
+  const dbgEl = document.getElementById('dbg');
+  if (dbgEl && count > 0 && posts.length === 0) {
+    // onValue hasn't fired yet or failed — manually load
+    dbgEl.textContent = 'onValue delayed — loading via get()...';
+    posts = [];
+    snap.forEach(child => posts.push({ _key: child.key, ...child.val() }));
+    rebuild();
+    cur = 0; goTo(0); startAuto();
+    setTimeout(()=>{ if(dbgEl) dbgEl.style.display='none'; }, 4000);
+  }
+}).catch(e => {
+  console.error('[Display] get() failed:', e);
+  const dbgEl = document.getElementById('dbg');
+  if (dbgEl) dbgEl.textContent = 'DB read failed: ' + e.message + ' — check Firebase rules';
 });
 
 /* ── PLAY / PAUSE ── */
