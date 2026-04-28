@@ -136,6 +136,23 @@
   }
   .slide.active .slide-content { transform: translateY(0); opacity: 1; }
 
+  /* Text slides: centered, full coverage */
+  .slide-content-center {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: clamp(40px, 8vw, 120px) clamp(40px, 10vw, 160px);
+    transform: translateY(14px);
+    opacity: 0;
+    transition: transform 0.6s 0.15s ease, opacity 0.6s 0.15s ease;
+  }
+  .slide.active .slide-content-center { transform: translateY(0); opacity: 1; }
+
   .slide-tag {
     display: inline-block;
     background: var(--accent); color: var(--dark);
@@ -156,6 +173,26 @@
     font-size: clamp(0.82rem, 1.8vw, 1.1rem);
     color: rgba(255,255,255,0.72);
     font-weight: 300; line-height: 1.65; max-width: 560px;
+  }
+
+  /* Bold centered body for text slides */
+  .slide-content-center .slide-body {
+    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+    font-weight: 700;
+    color: rgba(255,255,255,0.88);
+    max-width: 100%;
+    line-height: 1.7;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+  }
+
+  .slide-content-center .slide-title {
+    font-size: clamp(3rem, 8vw, 7rem);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .slide-content-center .slide-tag {
+    margin-bottom: 18px;
   }
 
   /* Slide number — top right */
@@ -557,7 +594,7 @@ function rebuild() {
       const bg = document.createElement('div');
       bg.className = 'slide-bg theme-' + (p.bgtheme || 'blue');
       const ov = document.createElement('div'); ov.className = 'slide-overlay';
-      const co = document.createElement('div'); co.className = 'slide-content';
+      const co = document.createElement('div'); co.className = 'slide-content-center';
       co.innerHTML = '<span class="slide-tag">' + x(p.category||'Announcement') + '</span>'
         + '<h2 class="slide-title">' + x(p.title||'') + '</h2>'
         + '<p class="slide-body">' + x(p.content||'') + '</p>';
@@ -577,7 +614,7 @@ function rebuild() {
     } else if (p.type === 'video') {
       const vid = document.createElement('video');
       vid.className = 'slide-vid';
-      vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
+      vid.muted = false; vid.playsInline = true; vid.preload = 'auto';
       const src = document.createElement('source');
       src.src = p.mediaUrl || ''; src.type = 'video/mp4';
       vid.appendChild(src);
@@ -789,6 +826,44 @@ async function fetchWeather() {
     document.getElementById('wx-hum').textContent  = '💧 ' + j.main.humidity + '%';
     document.getElementById('wx-wind').textContent = '💨 ' + Math.round(j.wind.speed * 3.6) + ' km/h';
   } catch { document.getElementById('wx-desc').textContent = 'Unavailable'; }
+}
+
+/* ── AUTOPLAY SOUND UNLOCK ─────────────────────────────────────────────────
+   Browsers block autoplay with audio until the user interacts with the page.
+   Show a one-time "tap to enable sound" overlay, then unlock on first click.
+── */
+const soundOverlay = document.createElement('div');
+soundOverlay.id = 'sound-unlock';
+soundOverlay.innerHTML = `
+  <div style="
+    position:fixed;bottom:calc(var(--bar-h) + 16px);left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);
+    border:1px solid rgba(240,192,64,0.4);border-radius:99px;
+    padding:10px 22px;z-index:999;
+    font-family:'Bebas Neue',sans-serif;font-size:14px;
+    letter-spacing:0.12em;color:rgba(255,255,255,0.75);
+    cursor:pointer;user-select:none;white-space:nowrap;
+    animation:fadeInUp 0.5s ease both;
+  ">🔇 TAP ANYWHERE TO ENABLE SOUND</div>`;
+document.body.appendChild(soundOverlay);
+
+document.addEventListener('click', function unlockSound() {
+  // Unmute any currently playing video
+  slides.forEach(s => {
+    const v = s.querySelector('video');
+    if (v) v.muted = false;
+  });
+  soundOverlay.remove();
+  document.removeEventListener('click', unlockSound);
+}, { once: false });
+
+// Add fadeInUp keyframe if not present
+if (!document.getElementById('sound-kf')) {
+  const st = document.createElement('style');
+  st.id = 'sound-kf';
+  st.textContent = '@keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }';
+  document.head.appendChild(st);
 }
 
 /* ── INIT ── */
