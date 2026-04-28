@@ -177,22 +177,27 @@
 
   /* Bold centered body for text slides */
   .slide-content-center .slide-body {
-    font-size: clamp(1.1rem, 2.4vw, 1.6rem);
     font-weight: 700;
     color: rgba(255,255,255,0.88);
-    max-width: 100%;
-    line-height: 1.7;
+    width: 100%;
+    line-height: 1.55;
     text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    /* font-size set dynamically by JS based on character count */
   }
 
   .slide-content-center .slide-title {
-    font-size: clamp(3rem, 8vw, 7rem);
-    margin-bottom: 20px;
+    font-size: clamp(2.5rem, 7vw, 6rem);
+    margin-bottom: 16px;
     text-align: center;
+    word-break: break-word;
   }
 
   .slide-content-center .slide-tag {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
   }
 
   /* Slide number — top right */
@@ -595,9 +600,19 @@ function rebuild() {
       bg.className = 'slide-bg theme-' + (p.bgtheme || 'blue');
       const ov = document.createElement('div'); ov.className = 'slide-overlay';
       const co = document.createElement('div'); co.className = 'slide-content-center';
+      const bodyText = p.content || '';
+      const len = bodyText.length;
+      // Scale font size down as content gets longer
+      let fontSize;
+      if      (len <= 60)  fontSize = 'clamp(1.6rem, 3.2vw, 2.4rem)';
+      else if (len <= 120) fontSize = 'clamp(1.3rem, 2.6vw, 2.0rem)';
+      else if (len <= 220) fontSize = 'clamp(1.1rem, 2.2vw, 1.6rem)';
+      else if (len <= 350) fontSize = 'clamp(0.95rem, 1.9vw, 1.35rem)';
+      else if (len <= 500) fontSize = 'clamp(0.85rem, 1.6vw, 1.15rem)';
+      else                 fontSize = 'clamp(0.75rem, 1.4vw, 1.0rem)';
       co.innerHTML = '<span class="slide-tag">' + x(p.category||'Announcement') + '</span>'
         + '<h2 class="slide-title">' + x(p.title||'') + '</h2>'
-        + '<p class="slide-body">' + x(p.content||'') + '</p>';
+        + '<p class="slide-body" style="font-size:' + fontSize + '">' + x(p.content||'') + '</p>';
       s.append(bg, ov, co);
 
     } else if (p.type === 'image') {
