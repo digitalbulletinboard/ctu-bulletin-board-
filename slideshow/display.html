@@ -116,14 +116,14 @@
     width: 100%; height: 100%; object-fit: cover;
   }
 
-  /* Dark gradient overlay on every slide */
+  /* Overlay — transparent, just a subtle vignette to keep text readable */
   .slide-overlay {
     position: absolute; inset: 0; z-index: 1;
     background: linear-gradient(
-      135deg,
-      rgba(0,0,0,0.65) 0%,
-      rgba(0,0,0,0.08) 50%,
-      rgba(0,0,0,0.30) 100%
+      to top,
+      rgba(0,0,0,0.28) 0%,
+      rgba(0,0,0,0.04) 40%,
+      transparent 100%
     );
   }
 
@@ -136,6 +136,8 @@
     transform: translateY(14px);
     opacity: 0;
     transition: transform 0.6s 0.15s ease, opacity 0.6s 0.15s ease;
+    /* fully transparent widget — blends into slide */
+    background: transparent;
   }
   .slide.active .slide-content { transform: translateY(0); opacity: 1; }
 
@@ -153,12 +155,19 @@
     transform: translateY(14px);
     opacity: 0;
     transition: transform 0.6s 0.15s ease, opacity 0.6s 0.15s ease;
+    /* fully transparent — gradient bg shows through */
+    background: transparent;
   }
   .slide.active .slide-content-center { transform: translateY(0); opacity: 1; }
 
   .slide-tag {
     display: inline-block;
-    background: var(--accent); color: var(--dark);
+    /* glass pill — readable on any background */
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.22);
+    color: rgba(255,255,255,0.90);
     font-size: 0.7rem; font-weight: 600;
     letter-spacing: 0.18em; text-transform: uppercase;
     padding: 4px 13px; border-radius: 4px; margin-bottom: 10px;
@@ -169,22 +178,28 @@
     font-size: clamp(2rem, 5.5vw, 5rem);
     color: #fff; letter-spacing: 0.04em;
     line-height: 1.05; margin-bottom: 10px;
-    text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+    /* strong drop-shadow keeps text legible over any image/video */
+    text-shadow:
+      0 2px 32px rgba(0,0,0,0.55),
+      0 1px 4px rgba(0,0,0,0.45);
   }
 
   .slide-body {
     font-size: clamp(0.82rem, 1.8vw, 1.1rem);
-    color: rgba(255,255,255,0.72);
+    color: rgba(255,255,255,0.88);
     font-weight: 300; line-height: 1.65; max-width: 560px;
+    text-shadow: 0 1px 12px rgba(0,0,0,0.45);
   }
 
   /* Bold centered body for text slides */
   .slide-content-center .slide-body {
     font-weight: 700;
-    color: rgba(255,255,255,0.88);
+    color: rgba(255,255,255,0.92);
     width: 100%;
     line-height: 1.55;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    text-shadow:
+      0 2px 28px rgba(0,0,0,0.50),
+      0 1px 4px rgba(0,0,0,0.40);
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
