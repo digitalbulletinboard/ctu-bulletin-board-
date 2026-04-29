@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Bulletin Board Display</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 <style>
@@ -16,6 +16,9 @@
     --glass:      rgba(255,255,255,0.08);
     --transition: 0.72s cubic-bezier(0.77, 0, 0.18, 1);
     --bar-h:      86px;
+    --arrow-size: 52px;
+    --slide-pad-x: clamp(20px, 5vw, 80px);
+    --slide-pad-y: clamp(20px, 5vh, 60px);
   }
 
   html, body {
@@ -367,6 +370,110 @@
   .theme-amber  { background: linear-gradient(145deg,#130a00,#5a2e00,#1a0e00); }
   .theme-rose   { background: linear-gradient(145deg,#1a0410,#6e1040,#180310); }
   .theme-teal   { background: linear-gradient(145deg,#021414,#0a4040,#021818); }
+
+  /* ══════════════════════════════════════════════════════
+     FULLY RESPONSIVE — works on any device & aspect ratio
+     Strategy: CSS variables + clamp() + media queries
+     Breakpoints: 360 / 480 / 768 / 1024 / 1440 / 1920 / 2560
+  ══════════════════════════════════════════════════════ */
+
+  /* ── Info bar: fluid sizing via clamp throughout ── */
+  #info-bar {
+    padding: 0 clamp(10px, 3vw, 32px);
+    gap: clamp(8px, 2vw, 24px);
+  }
+  .date-day   { font-size: clamp(12px, 1.8vw, 22px); }
+  .date-full  { font-size: clamp(8px,  1.1vw, 12px); }
+  .clock-time { font-size: clamp(20px, 3.2vw, 38px); }
+  .clock-sec  { font-size: clamp(12px, 1.8vw, 22px); }
+  .clock-ampm { font-size: clamp(8px,  0.9vw, 11px); }
+  .wx-temp    { font-size: clamp(16px, 2.2vw, 30px); }
+  .wx-icon    { font-size: clamp(20px, 2.8vw, 36px); }
+  .wx-desc    { font-size: clamp(9px,  1.0vw, 13px); }
+  .wx-city    { font-size: clamp(8px,  0.8vw, 11px); }
+  .wx-row     { font-size: clamp(8px,  0.9vw, 12px); }
+  #admin-link { font-size: clamp(9px,  0.9vw, 12px); padding: clamp(5px,0.6vw,9px) clamp(8px,1.2vw,16px); }
+
+  /* Arrows fluid */
+  .arrow      { width: clamp(34px, 4vw, 58px); height: clamp(34px, 4vw, 58px); }
+  .arrow svg  { width: clamp(14px, 1.8vw, 24px); height: clamp(14px, 1.8vw, 24px); }
+  .arrow-prev { left: clamp(8px, 1.5vw, 24px); }
+  .arrow-next { right: clamp(8px, 1.5vw, 24px); }
+
+  /* Dots fluid */
+  .dot.active { width: clamp(18px, 2.5vw, 30px); }
+  .play-btn   { width: clamp(30px, 3.5vw, 42px); height: clamp(30px, 3.5vw, 42px); }
+
+  /* Slide content padding fluid */
+  .slide-content        { padding: var(--slide-pad-y) var(--slide-pad-x); }
+  .slide-content-center { padding: clamp(20px, 5vh, 80px) clamp(20px, 8vw, 140px); }
+
+  /* Slide title fluid */
+  .slide-title { font-size: clamp(1.4rem, 4.5vw, 5.5rem); }
+  .slide-content-center .slide-title { font-size: clamp(2rem, 7vw, 7rem); }
+
+  /* Slide number fluid */
+  .slide-number { font-size: clamp(0.6rem, 1vw, 0.92rem); top: clamp(10px,1.5vh,24px); right: clamp(10px,1.5vw,24px); }
+
+  /* ── Tablet portrait ≤768px ── */
+  @media (max-width: 768px) {
+    :root { --bar-h: 68px; }
+    .mini-cal  { display: none; }
+    .wx-extra  { display: none; }
+    #info-bar  { grid-template-columns: auto 1fr auto auto; }
+  }
+
+  /* ── Mobile portrait ≤540px ── */
+  @media (max-width: 540px) {
+    :root { --bar-h: 58px; }
+    .mini-cal  { display: none; }
+    .wx-extra  { display: none; }
+    .wx-city   { display: none; }
+    #info-bar  { grid-template-columns: auto 1fr auto auto; padding: 0 8px; gap: 6px; }
+    .bar-left  { gap: 6px; }
+    .bar-right { gap: 6px; }
+  }
+
+  /* ── Very small ≤380px ── */
+  @media (max-width: 380px) {
+    :root { --bar-h: 52px; }
+    .wx-main   { display: none; }
+    #info-bar  { grid-template-columns: 1fr auto auto; }
+  }
+
+  /* ── Mobile landscape (short height) ── */
+  @media (max-height: 480px) {
+    :root { --bar-h: 48px; }
+    .mini-cal  { display: none; }
+    .wx-extra  { display: none; }
+    .wx-city   { display: none; }
+    .slider-controls { bottom: 8px; }
+  }
+
+  /* ── Large desktop ≥1440px ── */
+  @media (min-width: 1440px) {
+    :root { --bar-h: 92px; }
+  }
+
+  /* ── Full HD / TV ≥1920px ── */
+  @media (min-width: 1920px) {
+    :root { --bar-h: 104px; }
+  }
+
+  /* ── 4K ≥2560px ── */
+  @media (min-width: 2560px) {
+    :root { --bar-h: 120px; }
+  }
+
+  /* ── 4:3 ratio (projectors, old monitors) ── */
+  @media (max-aspect-ratio: 4/3) {
+    .slide-content-center { padding: clamp(16px, 4vw, 60px); }
+  }
+
+  /* ── Ultra-wide 21:9+ ── */
+  @media (min-aspect-ratio: 21/9) {
+    .slide-content-center { padding: clamp(40px, 5vw, 80px) clamp(100px, 18vw, 280px); }
+  }
 </style>
 </head>
 <body>
