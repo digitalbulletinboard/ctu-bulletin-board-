@@ -268,20 +268,6 @@
       <div class="msg" id="r-msg"></div>
       <button class="btn" id="r-btn" onclick="doRegister()">Submit Request</button>
     </div>
-
-    <div class="help-toggle" onclick="document.getElementById('hbox').classList.toggle('open')">
-      ⚠️ Can't sign in? Click for troubleshooting help
-    </div>
-    <div class="help-box" id="hbox">
-      <b>Common login issues:</b>
-      <ol>
-        <li><b>Realtime Database not created</b> — Firebase Console → Build → Realtime Database → Create database</li>
-        <li><b>Authentication not enabled</b> — Firebase Console → Authentication → Enable Email/Password</li>
-        <li><b>First admin not approved</b> — After registering, go to Realtime Database → users → your UID → set <code>status</code> to <code>"approved"</code></li>
-        <li><b>Database rules too strict</b> — Set rules to allow authenticated read/write</li>
-      </ol>
-    </div>
-  </div>
 </div>
 
 <script type="module">
