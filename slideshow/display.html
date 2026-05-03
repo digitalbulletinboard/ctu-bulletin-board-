@@ -361,25 +361,21 @@
     isolation: isolate;
   }
 
-  /* The actual glass layer — sits behind content, blurs the slide beneath */
+  /* The actual glass layer — barely-there, almost fully transparent */
   #info-bar::before {
     content: '';
     position: absolute; inset: 0;
-    /* Liquid frosted glass */
-    background:
-      linear-gradient(
-        105deg,
-        rgba(255,255,255,0.035) 0%,
-        rgba(255,255,255,0.065) 30%,
-        rgba(240,192,64,0.025) 60%,
-        rgba(255,255,255,0.04) 100%
-      );
-    backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
-    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+    background: linear-gradient(
+      180deg,
+      rgba(0,0,0,0.0) 0%,
+      rgba(0,0,0,0.08) 100%
+    );
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
     z-index: -2;
   }
 
-  /* Liquid shimmer top border */
+  /* Liquid shimmer top border — very subtle */
   #info-bar::after {
     content: '';
     position: absolute; top: 0; left: 0; right: 0;
@@ -387,11 +383,11 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      rgba(255,255,255,0.10) 15%,
-      rgba(240,192,64,0.55) 35%,
-      rgba(255,255,255,0.20) 50%,
-      rgba(240,192,64,0.45) 65%,
-      rgba(255,255,255,0.10) 85%,
+      rgba(255,255,255,0.04) 15%,
+      rgba(240,192,64,0.28) 35%,
+      rgba(255,255,255,0.08) 50%,
+      rgba(240,192,64,0.22) 65%,
+      rgba(255,255,255,0.04) 85%,
       transparent 100%
     );
     background-size: 200% 100%;
@@ -414,19 +410,19 @@
   }
   #info-bar-orbs .orb-1 {
     width: 180px; height: 90px;
-    background: radial-gradient(circle, rgba(240,192,64,0.22), transparent 70%);
+    background: radial-gradient(circle, rgba(240,192,64,0.08), transparent 70%);
     left: 8%; top: -20px;
     animation: orb-float-1 7s ease-in-out infinite, orb-fade 3s ease forwards 0.5s;
   }
   #info-bar-orbs .orb-2 {
     width: 220px; height: 110px;
-    background: radial-gradient(circle, rgba(96,165,250,0.14), transparent 70%);
+    background: radial-gradient(circle, rgba(96,165,250,0.05), transparent 70%);
     left: 38%; top: -30px;
     animation: orb-float-2 9s ease-in-out infinite, orb-fade 3s ease forwards 1s;
   }
   #info-bar-orbs .orb-3 {
     width: 160px; height: 80px;
-    background: radial-gradient(circle, rgba(240,192,64,0.18), transparent 70%);
+    background: radial-gradient(circle, rgba(240,192,64,0.06), transparent 70%);
     right: 12%; top: -15px;
     animation: orb-float-3 6s ease-in-out infinite, orb-fade 3s ease forwards 1.5s;
   }
@@ -434,17 +430,12 @@
 
   /* Frosted pill containers for each section */
   .bar-pill {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.09);
+    background: transparent;
+    border: none;
     border-radius: 14px;
     padding: 6px 14px;
-    backdrop-filter: blur(4px);
-    transition: background 0.3s, border-color 0.3s;
+    transition: background 0.3s;
     position: relative;
-  }
-  .bar-pill:hover {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(240,192,64,0.20);
   }
 
   .bar-left  { display: flex; align-items: center; gap: 18px; }
