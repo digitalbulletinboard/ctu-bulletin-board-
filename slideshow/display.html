@@ -313,70 +313,227 @@
   #empty-state small { font-size: 12px; color: rgba(255,255,255,0.15); }
 
   /* ═══════════════════════════════════════════════════════
-     INFO BAR
+     INFO BAR — LIQUID TRANSPARENT WIDGET
   ═══════════════════════════════════════════════════════ */
+
+  /* Liquid shimmer keyframe */
+  @keyframes liquid-shift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Orb float animations */
+  @keyframes orb-float-1 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33%       { transform: translate(20px, -8px) scale(1.08); }
+    66%       { transform: translate(-12px, 5px) scale(0.95); }
+  }
+  @keyframes orb-float-2 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    40%       { transform: translate(-18px, 6px) scale(1.06); }
+    70%       { transform: translate(14px, -4px) scale(0.97); }
+  }
+  @keyframes orb-float-3 {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50%       { transform: translate(8px, -10px) scale(1.04); }
+  }
+
+  /* Border shimmer */
+  @keyframes border-glow {
+    0%, 100% { opacity: 0.18; }
+    50%       { opacity: 0.45; }
+  }
+
   #info-bar {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: var(--bar-h);
-    background: rgba(6,6,10,0.97);
-    border-top: 1px solid rgba(240,192,64,0.10);
-    backdrop-filter: blur(24px);
+    /* Fully transparent base — only backdrop-filter creates the "glass" */
+    background: transparent;
+    border-top: none;
     display: grid;
     grid-template-columns: 1fr auto 1fr auto;
     align-items: center;
     padding: 0 28px; gap: 20px;
     z-index: 100;
+    /* Isolate stacking for backdrop-filter children */
+    isolation: isolate;
+  }
+
+  /* The actual glass layer — sits behind content, blurs the slide beneath */
+  #info-bar::before {
+    content: '';
+    position: absolute; inset: 0;
+    /* Liquid frosted glass */
+    background:
+      linear-gradient(
+        105deg,
+        rgba(255,255,255,0.035) 0%,
+        rgba(255,255,255,0.065) 30%,
+        rgba(240,192,64,0.025) 60%,
+        rgba(255,255,255,0.04) 100%
+      );
+    backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+    -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(1.06);
+    z-index: -2;
+  }
+
+  /* Liquid shimmer top border */
+  #info-bar::after {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.10) 15%,
+      rgba(240,192,64,0.55) 35%,
+      rgba(255,255,255,0.20) 50%,
+      rgba(240,192,64,0.45) 65%,
+      rgba(255,255,255,0.10) 85%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: liquid-shift 4s ease infinite;
+    z-index: -1;
+  }
+
+  /* Floating ambient orbs — liquid blobs behind the glass */
+  #info-bar-orbs {
+    position: absolute; inset: 0; overflow: hidden;
+    pointer-events: none; z-index: -3;
+  }
+  #info-bar-orbs .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(22px);
+    opacity: 0;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  #info-bar-orbs .orb-1 {
+    width: 180px; height: 90px;
+    background: radial-gradient(circle, rgba(240,192,64,0.22), transparent 70%);
+    left: 8%; top: -20px;
+    animation: orb-float-1 7s ease-in-out infinite, orb-fade 3s ease forwards 0.5s;
+  }
+  #info-bar-orbs .orb-2 {
+    width: 220px; height: 110px;
+    background: radial-gradient(circle, rgba(96,165,250,0.14), transparent 70%);
+    left: 38%; top: -30px;
+    animation: orb-float-2 9s ease-in-out infinite, orb-fade 3s ease forwards 1s;
+  }
+  #info-bar-orbs .orb-3 {
+    width: 160px; height: 80px;
+    background: radial-gradient(circle, rgba(240,192,64,0.18), transparent 70%);
+    right: 12%; top: -15px;
+    animation: orb-float-3 6s ease-in-out infinite, orb-fade 3s ease forwards 1.5s;
+  }
+  @keyframes orb-fade { to { opacity: 1; } }
+
+  /* Frosted pill containers for each section */
+  .bar-pill {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    padding: 6px 14px;
+    backdrop-filter: blur(4px);
+    transition: background 0.3s, border-color 0.3s;
+    position: relative;
+  }
+  .bar-pill:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(240,192,64,0.20);
   }
 
   .bar-left  { display: flex; align-items: center; gap: 18px; }
   .bar-right { display: flex; align-items: center; justify-content: flex-end; gap: 14px; }
   .bar-center { text-align: center; }
 
+  /* Shared text-shadow for readability over any background */
+  .date-day, .date-full, .clock-time, .clock-sec, .clock-ampm,
+  .wx-temp, .wx-desc, .wx-city, .wx-row {
+    text-shadow:
+      0 1px 8px rgba(0,0,0,0.70),
+      0 2px 20px rgba(0,0,0,0.55),
+      0 0 40px rgba(0,0,0,0.35);
+  }
+
   /* Date */
   .date-day {
     font-family: 'DM Serif Display', serif;
-    font-size: 20px; color: var(--light);
+    font-size: 20px; color: rgba(255,255,255,0.95);
   }
-  .date-full { font-size: 11px; color: rgba(255,255,255,0.32); margin-top: 1px; }
+  .date-full { font-size: 11px; color: rgba(255,255,255,0.60); margin-top: 1px; }
 
   /* Mini calendar */
   .mini-cal { display: flex; gap: 5px; }
   .cal-col  { display: flex; flex-direction: column; align-items: center; gap: 3px; }
-  .cal-dn   { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.26); }
-  .cal-dd   { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.38); }
-  .cal-dd.today { background: var(--accent); color: var(--dark); font-weight: 700; box-shadow: 0 0 10px rgba(240,192,64,0.3); }
+  .cal-dn   { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); text-shadow: 0 1px 8px rgba(0,0,0,0.70); }
+  .cal-dd   { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 7px; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.60); text-shadow: 0 1px 8px rgba(0,0,0,0.70); }
+  .cal-dd.today {
+    background: rgba(240,192,64,0.85);
+    backdrop-filter: blur(4px);
+    color: var(--dark); font-weight: 700;
+    box-shadow: 0 0 12px rgba(240,192,64,0.50), 0 2px 8px rgba(0,0,0,0.40);
+    text-shadow: none;
+  }
 
   /* Clock */
   .clock-time {
     font-family: 'DM Serif Display', serif;
-    font-size: 32px; color: var(--light); line-height: 1;
+    font-size: 32px; color: rgba(255,255,255,0.97); line-height: 1;
   }
-  .clock-sec  { font-size: 18px; color: rgba(255,255,255,0.32); }
-  .clock-ampm { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: rgba(255,255,255,0.30); margin-top: 3px; text-transform: uppercase; }
+  .clock-sec  { font-size: 18px; color: rgba(255,255,255,0.55); }
+  .clock-ampm { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; color: rgba(255,255,255,0.50); margin-top: 3px; text-transform: uppercase; }
 
   /* Weather */
   .wx-main  { display: flex; align-items: center; gap: 10px; }
-  .wx-icon  { font-size: 32px; line-height: 1; }
-  .wx-temp  { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--light); line-height: 1; }
+  .wx-icon  { font-size: 32px; line-height: 1; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.55)); }
+  .wx-temp  { font-family: 'DM Serif Display', serif; font-size: 26px; color: rgba(255,255,255,0.97); line-height: 1; }
   .wx-info  { line-height: 1.5; }
-  .wx-desc  { font-size: 12px; color: rgba(255,255,255,0.62); text-transform: capitalize; }
-  .wx-city  { font-size: 10px; color: rgba(255,255,255,0.26); }
+  .wx-desc  { font-size: 12px; color: rgba(255,255,255,0.80); text-transform: capitalize; }
+  .wx-city  { font-size: 10px; color: rgba(255,255,255,0.52); }
   .wx-extra { display: flex; flex-direction: column; gap: 3px; }
-  .wx-row   { font-size: 11px; color: rgba(255,255,255,0.32); display: flex; align-items: center; gap: 4px; }
+  .wx-row   { font-size: 11px; color: rgba(255,255,255,0.55); display: flex; align-items: center; gap: 4px; }
+
+  /* Liquid glass divider between bar sections */
+  .bar-divider {
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255,255,255,0.14) 30%,
+      rgba(240,192,64,0.22) 50%,
+      rgba(255,255,255,0.14) 70%,
+      transparent
+    );
+    animation: border-glow 3s ease-in-out infinite;
+  }
 
   /* Admin link */
   #admin-link {
     display: flex; align-items: center; gap: 6px;
     padding: 8px 15px; border-radius: 9px;
-    background: rgba(240,192,64,0.07);
-    border: 1px solid rgba(240,192,64,0.16);
-    color: rgba(240,192,64,0.65);
+    background: rgba(240,192,64,0.10);
+    border: 1px solid rgba(240,192,64,0.22);
+    color: rgba(240,192,64,0.85);
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
     text-decoration: none; white-space: nowrap;
-    transition: all 0.2s;
+    transition: all 0.25s;
+    backdrop-filter: blur(6px);
+    text-shadow: 0 1px 8px rgba(0,0,0,0.55);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.20), inset 0 1px 0 rgba(255,255,255,0.08);
   }
-  #admin-link:hover { background: rgba(240,192,64,0.16); color: var(--accent); border-color: rgba(240,192,64,0.45); }
+  #admin-link:hover {
+    background: rgba(240,192,64,0.22);
+    color: var(--accent);
+    border-color: rgba(240,192,64,0.55);
+    box-shadow: 0 4px 20px rgba(240,192,64,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+    transform: translateY(-1px);
+  }
 
   /* Text-slide theme backgrounds */
   .theme-blue   { background: linear-gradient(145deg,#0a1628,#1a3a6e,#0d2040); }
@@ -433,20 +590,22 @@
   /* ── Tablet portrait ≤768px ── */
   @media (max-width: 768px) {
     :root { --bar-h: 68px; }
-    .mini-cal  { display: none; }
-    .wx-extra  { display: none; }
-    #info-bar  { grid-template-columns: auto 1fr auto auto; }
+    .mini-cal    { display: none; }
+    .wx-extra    { display: none; }
+    .bar-divider { display: none; }
+    #info-bar    { grid-template-columns: auto 1fr auto auto; }
   }
 
   /* ── Mobile portrait ≤540px ── */
   @media (max-width: 540px) {
     :root { --bar-h: 58px; }
-    .mini-cal  { display: none; }
-    .wx-extra  { display: none; }
-    .wx-city   { display: none; }
-    #info-bar  { grid-template-columns: auto 1fr auto auto; padding: 0 8px; gap: 6px; }
-    .bar-left  { gap: 6px; }
-    .bar-right { gap: 6px; }
+    .mini-cal    { display: none; }
+    .wx-extra    { display: none; }
+    .bar-divider { display: none; }
+    .wx-city     { display: none; }
+    #info-bar    { grid-template-columns: auto 1fr auto auto; padding: 0 8px; gap: 6px; }
+    .bar-left    { gap: 6px; }
+    .bar-right   { gap: 6px; }
   }
 
   /* ── Very small ≤380px ── */
@@ -553,11 +712,19 @@
 
 <!-- ═══ INFO BAR ════════════════════════════════════════════════════════ -->
 <div id="info-bar">
+  <!-- Liquid ambient orbs -->
+  <div id="info-bar-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
   <div class="bar-left">
     <div>
       <div class="date-day" id="b-day">Monday</div>
       <div class="date-full" id="b-date">April 27, 2026</div>
     </div>
+    <div class="bar-divider"></div>
     <div class="mini-cal" id="b-cal"></div>
   </div>
 
@@ -579,6 +746,7 @@
         </div>
       </div>
     </div>
+    <div class="bar-divider"></div>
     <div class="wx-extra">
       <div class="wx-row" id="wx-hum">💧 --%</div>
       <div class="wx-row" id="wx-wind">💨 -- km/h</div>
