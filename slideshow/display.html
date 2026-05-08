@@ -711,6 +711,7 @@
     <div class="wx-extra">
       <div class="wx-row" id="wx-hum">💧 --%</div>
       <div class="wx-row" id="wx-wind">💨 -- km/h</div>
+      <div class="wx-row" id="wx-feel">🌡️ Feels --°</div>
     </div>
   </div>
 
@@ -1093,6 +1094,7 @@ async function fetchWeather() {
     document.getElementById('wx-city').textContent = j.name + ', ' + j.sys.country;
     document.getElementById('wx-hum').textContent  = '💧 ' + j.main.humidity + '%';
     document.getElementById('wx-wind').textContent = '💨 ' + Math.round(j.wind.speed * 3.6) + ' km/h';
+    document.getElementById('wx-feel').textContent = '🌡️ Feels ' + Math.round(j.main.feels_like) + '°C';
   } catch { document.getElementById('wx-desc').textContent = 'Unavailable'; }
 }
 
