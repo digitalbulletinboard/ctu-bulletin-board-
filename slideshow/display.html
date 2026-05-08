@@ -1097,56 +1097,47 @@ async function fetchWeather() {
 }
 
 /* ── SOUND TOGGLE ─────────────────────────────────────────────────────────
-   Browsers block autoplay audio until user interaction.
-   Show a persistent mute/unmute button. First click unlocks audio context
-   and unmutes; subsequent clicks toggle mute state.
+   Always-visible small icon pinned to the right side of the screen,
+   vertically centered between slider and info bar.
 ── */
 let soundUnlocked = false;
-let globalMuted   = true; // start muted until user clicks
+let globalMuted   = true;
 
-// Inject styles + keyframes
+// Inject styles
 if (!document.getElementById('sound-kf')) {
   const st = document.createElement('style');
   st.id = 'sound-kf';
   st.textContent = `
-    @keyframes fadeInUp {
-      from { opacity:0; transform:translateX(-50%) translateY(10px); }
-      to   { opacity:1; transform:translateX(-50%) translateY(0); }
-    }
-    @keyframes fadeOutDown {
-      from { opacity:1; transform:translateX(-50%) translateY(0); }
-      to   { opacity:0; transform:translateX(-50%) translateY(10px); }
-    }
     #sound-btn {
-      position:fixed;
-      bottom:calc(var(--bar-h) + 16px);
-      left:50%;
-      transform:translateX(-50%);
-      background:rgba(0,0,0,0.70);
-      backdrop-filter:blur(10px);
-      border:1px solid rgba(240,192,64,0.4);
-      border-radius:50%;
-      width:48px; height:48px;
-      z-index:999;
-      font-size:22px;
-      color:rgba(255,255,255,0.85);
-      cursor:pointer;
-      user-select:none;
-      display:flex; align-items:center; justify-content:center;
-      animation:fadeInUp 0.5s ease both;
-      transition:background 0.2s, border-color 0.2s;
+      position: fixed;
+      right: 16px;
+      bottom: calc(var(--bar-h) + 16px);
+      z-index: 200;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.70);
+      font-size: 16px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+      padding: 0;
     }
     #sound-btn:hover {
-      background:rgba(240,192,64,0.18);
-      border-color:rgba(240,192,64,0.7);
+      background: rgba(240,192,64,0.18);
+      border-color: rgba(240,192,64,0.6);
+      color: #fff;
+      transform: scale(1.12);
     }
     #sound-btn.unmuted {
-      border-color:rgba(240,192,64,0.6);
-      color:rgba(240,192,64,0.95);
-    }
-    #sound-btn.hiding {
-      animation:fadeOutDown 0.4s ease forwards;
-      pointer-events:none;
+      border-color: rgba(240,192,64,0.55);
+      color: rgba(240,192,64,0.95);
     }
   `;
   document.head.appendChild(st);
@@ -1154,38 +1145,27 @@ if (!document.getElementById('sound-kf')) {
 
 const soundBtn = document.createElement('button');
 soundBtn.id = 'sound-btn';
-soundBtn.textContent = '🔇';
+soundBtn.title = 'Toggle sound';
 document.body.appendChild(soundBtn);
-
-let hideTimer = null;
-
-function scheduleHide() {
-  clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => {
-    soundBtn.classList.add('hiding');
-    soundBtn.addEventListener('animationend', () => {
-      soundBtn.style.display = 'none';
-    }, { once: true });
-  }, 5000);
-}
-
-function showBtn() {
-  soundBtn.style.display = 'flex';
-  soundBtn.classList.remove('hiding');
-  soundBtn.style.animation = 'none';
-  void soundBtn.offsetWidth;
-  soundBtn.style.animation = '';
-}
 
 function applyMuteState() {
   slides.forEach(s => {
     const v = s.querySelector('video');
     if (v) v.muted = globalMuted;
   });
-  soundBtn.textContent = globalMuted ? '🔇' : '🔊';
-  if (globalMuted) soundBtn.classList.remove('unmuted');
-  else soundBtn.classList.add('unmuted');
+  // Use SVG speaker icons for crisp rendering
+  if (globalMuted) {
+    soundBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z"/><line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+    soundBtn.classList.remove('unmuted');
+    soundBtn.title = 'Unmute';
+  } else {
+    soundBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z"/></svg>`;
+    soundBtn.classList.add('unmuted');
+    soundBtn.title = 'Mute';
+  }
 }
+
+applyMuteState(); // render initial icon
 
 soundBtn.addEventListener('click', (e) => {
   e.stopPropagation();
@@ -1198,12 +1178,7 @@ soundBtn.addEventListener('click', (e) => {
     } catch(err) {}
   }
   applyMuteState();
-  showBtn();
-  scheduleHide();
 });
-
-// Auto-hide 5s after page load
-scheduleHide();
 
 // Apply mute state whenever goTo switches slides (handled inside goTo directly)
 
