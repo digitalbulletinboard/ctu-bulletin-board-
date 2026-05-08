@@ -194,10 +194,12 @@
 
   /* Bold centered body for text slides */
   .slide-content-center .slide-body {
-    font-weight: 700;
+    font-family: 'Bebas Neue', sans-serif;
+    font-weight: 400;
     color: rgba(255,255,255,0.92);
     width: 100%;
-    line-height: 1.55;
+    line-height: 1.25;
+    letter-spacing: 0.04em;
     text-shadow:
       0 2px 28px rgba(0,0,0,0.50),
       0 1px 4px rgba(0,0,0,0.40);
@@ -205,7 +207,7 @@
     display: -webkit-box;
     -webkit-box-orient: vertical;
     word-break: break-word;
-    /* font-size set dynamically by JS based on character count */
+    /* font-size set dynamically by JS to match title size */
   }
 
   .slide-content-center .slide-title {
@@ -541,7 +543,8 @@
 
   /* Slide title fluid */
   .slide-title { font-size: clamp(1.4rem, 4.5vw, 5.5rem); }
-  .slide-content-center .slide-title { font-size: clamp(2rem, 7vw, 7rem); }
+  .slide-content-center .slide-title,
+  .slide-content-center .slide-body { font-size: clamp(2rem, 7vw, 7rem); }
 
   /* Slide number fluid */
   .slide-number { font-size: clamp(0.6rem, 1vw, 0.92rem); top: clamp(10px,1.5vh,24px); right: clamp(10px,1.5vw,24px); }
@@ -782,7 +785,7 @@ function goTo(n) {
 
   // start video on new slide
   const vid = slides[cur]?.querySelector('video');
-  if (vid) { vid.currentTime = 0; vid.play().catch(()=>{}); }
+  if (vid) { vid.currentTime = 0; vid.muted = globalMuted; vid.play().catch(()=>{}); }
 }
 
 function resetProg() {
@@ -850,15 +853,8 @@ function rebuild() {
       const ov = document.createElement('div'); ov.className = 'slide-overlay';
       const co = document.createElement('div'); co.className = 'slide-content-center';
       const bodyText = p.content || '';
-      const len = bodyText.length;
-      // Scale font size down as content gets longer
-      let fontSize;
-      if      (len <= 60)  fontSize = 'clamp(1.6rem, 3.2vw, 2.4rem)';
-      else if (len <= 120) fontSize = 'clamp(1.3rem, 2.6vw, 2.0rem)';
-      else if (len <= 220) fontSize = 'clamp(1.1rem, 2.2vw, 1.6rem)';
-      else if (len <= 350) fontSize = 'clamp(0.95rem, 1.9vw, 1.35rem)';
-      else if (len <= 500) fontSize = 'clamp(0.85rem, 1.6vw, 1.15rem)';
-      else                 fontSize = 'clamp(0.75rem, 1.4vw, 1.0rem)';
+      // Body uses same font size as title (Bebas Neue, clamp(2.5rem, 7vw, 6rem))
+      const fontSize = 'clamp(2.5rem, 7vw, 6rem)';
       co.innerHTML = '<span class="slide-tag">' + x(p.category||'Announcement') + '</span>'
         + '<h2 class="slide-title">' + x(p.title||'') + '</h2>'
         + '<p class="slide-body" style="font-size:' + fontSize + '">' + x(p.content||'') + '</p>';
@@ -878,7 +874,7 @@ function rebuild() {
     } else if (p.type === 'video') {
       const vid = document.createElement('video');
       vid.className = 'slide-vid';
-      vid.muted = false; vid.playsInline = true; vid.preload = 'auto';
+      vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
       const src = document.createElement('source');
       src.src = p.mediaUrl || ''; src.type = 'video/mp4';
       vid.appendChild(src);
@@ -1092,43 +1088,91 @@ async function fetchWeather() {
   } catch { document.getElementById('wx-desc').textContent = 'Unavailable'; }
 }
 
-/* ── AUTOPLAY SOUND UNLOCK ─────────────────────────────────────────────────
-   Browsers block autoplay with audio until the user interacts with the page.
-   Show a one-time "tap to enable sound" overlay, then unlock on first click.
+/* ── SOUND TOGGLE ─────────────────────────────────────────────────────────
+   Browsers block autoplay audio until user interaction.
+   Show a persistent mute/unmute button. First click unlocks audio context
+   and unmutes; subsequent clicks toggle mute state.
 ── */
-const soundOverlay = document.createElement('div');
-soundOverlay.id = 'sound-unlock';
-soundOverlay.innerHTML = `
-  <div style="
-    position:fixed;bottom:calc(var(--bar-h) + 16px);left:50%;
-    transform:translateX(-50%);
-    background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);
-    border:1px solid rgba(240,192,64,0.4);border-radius:99px;
-    padding:10px 22px;z-index:999;
-    font-family:'Bebas Neue',sans-serif;font-size:14px;
-    letter-spacing:0.12em;color:rgba(255,255,255,0.75);
-    cursor:pointer;user-select:none;white-space:nowrap;
-    animation:fadeInUp 0.5s ease both;
-  ">🔇 TAP ANYWHERE TO ENABLE SOUND</div>`;
-document.body.appendChild(soundOverlay);
+let soundUnlocked = false;
+let globalMuted   = true; // start muted until user clicks
 
-document.addEventListener('click', function unlockSound() {
-  // Unmute any currently playing video
-  slides.forEach(s => {
-    const v = s.querySelector('video');
-    if (v) v.muted = false;
-  });
-  soundOverlay.remove();
-  document.removeEventListener('click', unlockSound);
-}, { once: false });
-
-// Add fadeInUp keyframe if not present
+// Inject keyframe
 if (!document.getElementById('sound-kf')) {
   const st = document.createElement('style');
   st.id = 'sound-kf';
-  st.textContent = '@keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(10px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }';
+  st.textContent = `
+    @keyframes fadeInUp {
+      from { opacity:0; transform:translateX(-50%) translateY(10px); }
+      to   { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    #sound-btn {
+      position:fixed;
+      bottom:calc(var(--bar-h) + 16px);
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,0.75);
+      backdrop-filter:blur(10px);
+      border:1px solid rgba(240,192,64,0.4);
+      border-radius:99px;
+      padding:10px 22px;
+      z-index:999;
+      font-family:'Bebas Neue',sans-serif;
+      font-size:14px;
+      letter-spacing:0.12em;
+      color:rgba(255,255,255,0.75);
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+      animation:fadeInUp 0.5s ease both;
+      transition:background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    #sound-btn:hover {
+      background:rgba(240,192,64,0.18);
+      border-color:rgba(240,192,64,0.7);
+      color:#fff;
+    }
+    #sound-btn.unmuted {
+      border-color:rgba(240,192,64,0.55);
+      color:rgba(240,192,64,0.90);
+    }
+  `;
   document.head.appendChild(st);
 }
+
+const soundBtn = document.createElement('button');
+soundBtn.id = 'sound-btn';
+soundBtn.textContent = '🔇 TAP ANYWHERE TO ENABLE SOUND';
+document.body.appendChild(soundBtn);
+
+function applyMuteState() {
+  slides.forEach(s => {
+    const v = s.querySelector('video');
+    if (v) v.muted = globalMuted;
+  });
+  if (globalMuted) {
+    soundBtn.textContent = '🔇 SOUND OFF — CLICK TO UNMUTE';
+    soundBtn.classList.remove('unmuted');
+  } else {
+    soundBtn.textContent = '🔊 SOUND ON — CLICK TO MUTE';
+    soundBtn.classList.add('unmuted');
+  }
+}
+
+soundBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  globalMuted = !globalMuted;
+  if (!soundUnlocked) {
+    soundUnlocked = true;
+    // Resume AudioContext on first interaction (browser requirement)
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      ac.resume();
+    } catch(err) {}
+  }
+  applyMuteState();
+});
+
+// Apply mute state whenever goTo switches slides (handled inside goTo directly)
 
 /* ── INIT ── */
 setInterval(tick, 1000); tick();
